@@ -6,17 +6,16 @@ export const login = async(req,res)=>{
     try {
         const token = await req.body.token;
         const decoded = await getAuth(app).verifyIdToken(token);
-        const user = await User.findOne({     
-            firebaseUId: decoded.uid
+        let user = await User.findOne({     
+            firebaseUid: decoded.uid
         });
         if(!user){
-            const user = await user.create({
-                firebaseUId: decoded.uid,
-                name: decoded.name,
+            user = await User.create({
+                firebaseUid: decoded.uid,
+                username: decoded.name || decoded.email,
                 email: decoded.email,
-                Avatar: decoded.picture
-            })
-
+                avatar: decoded.picture
+            });
         }
 
         const sessionId = crypto.randomUUID();
