@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import proxy from "express-http-proxy";
+import {protect} from "./middleware/auth.middleware"
+import getCurrentUser from "./controllers/user.controllers";
 
 
 
@@ -19,7 +21,7 @@ app.use(cors({
 
 app.use(cookieParser());
 app.use("/auth",proxy(process.env.AUTH_SERVICE_URL));
-
+app.get("/me",protect,getCurrentUser)
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
