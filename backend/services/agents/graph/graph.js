@@ -57,3 +57,4 @@ workFlow.addEdge("coding","__end__")
 workFlow.addEdge("imageGen","__end__")
 
 
+export const graph = workFlow.compile()
