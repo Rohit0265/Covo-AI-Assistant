@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import proxy from "express-http-proxy";
 import {protect} from "./middleware/auth.middleware"
 import getCurrentUser from "./controllers/user.controllers";
+import { proxyHeader } from "./utils/proxyHeader";
 
 
 
@@ -22,7 +23,7 @@ app.use(cors({
 app.use(cookieParser());
 app.use("/api/auth",proxy(process.env.AUTH_SERVICE_URL));
 app.get("/api/me",protect,getCurrentUser)
-
+app.get("/api/chat",protect,proxyHeader(process.env.CHAT_SERVICE_URL))
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
