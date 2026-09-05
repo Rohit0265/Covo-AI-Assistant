@@ -3,10 +3,12 @@ import api from "../utils/axios";
 
 const getCurrentUser = async()=>{
     try {
-      const res = await api.get("/api/me");
-      console.log(res);
+      const {data} = await api.get("/api/me");
+      return data;
+      // console.log(res);
     } catch (error) {
       console.log(error);
+      return null;
     }
 }
 

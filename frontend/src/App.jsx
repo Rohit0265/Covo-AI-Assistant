@@ -2,11 +2,20 @@ import React, { useEffect } from "react";
 import Home from "./pages/Home";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import getCurrentUser from "./features/getCurrentUser";
+import { useDispatch } from "react-redux";
+import { setUserData } from "./redux/userSlice";
 
 const App = () => {
-  useEffect(() => {
-    getCurrentUser();
+
+  const dispatch= useDispatch()
+
+  useEffect(async () => {
+
+    await getCurrentUser();
+    dispatch(setUserData(data))
+
   }, []);
+
   
   return (
     <BrowserRouter>
