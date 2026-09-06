@@ -10,7 +10,7 @@ const gemini = new new ChatGoogleGenerativeAI({
 })
 
 
-export const getModel = async (agent)=>{
+export const getModel = async (agent) => {
     switch (agent) {
         case "chat":
             return groq;
