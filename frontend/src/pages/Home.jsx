@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { googleProvider, auth } from '../utils/firebase';
 import { signInWithPopup } from 'firebase/auth';
+import SideBar from '../components/sideBar';
+import chatArea from '../components/chatArea';
+import artifacts from '../components/artifacts';
 import api from '../utils/axios';
 
 const Home = () => {
@@ -36,6 +39,9 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col justify-center items-center p-4">
+      <SideBar/>
+      <chatArea/>
+      <artifacts/>
       <div className="bg-zinc-900 p-8 rounded-2xl shadow-2xl border border-zinc-800 w-full max-w-md">
         {/* Header Text */}
         <div className="text-center mb-6">

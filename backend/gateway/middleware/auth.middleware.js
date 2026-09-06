@@ -1,4 +1,4 @@
-import redis from "../config/redis.js"
+import redis from "../../shared/redis/redis.js";
 
 
 const protect = async(req,res,next)=>{
@@ -23,4 +23,4 @@ const protect = async(req,res,next)=>{
 }
 
 
-export default {protect}
+export default protect

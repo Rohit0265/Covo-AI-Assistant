@@ -3,9 +3,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import proxy from "express-http-proxy";
-import {protect} from "./middleware/auth.middleware"
-import getCurrentUser from "./controllers/user.controllers";
-import { proxyHeader } from "./utils/proxyHeader";
+import protect from "./middleware/auth.middleware.js"
+import getCurrentUser from "./controllers/user.controllers.js";
+import { proxyHeader } from "./utils/proxyHeader.js";
 
 
 
