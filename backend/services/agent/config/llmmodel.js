@@ -1,24 +1,12 @@
-import { ChatGroq } from "@langchain/groq"
-import { ChatGoogle } from "@langchain/google";
+import { ChatGroq } from "@langchain/groq";
+import dotenv from "dotenv";
+dotenv.config();
 
 const groq = new ChatGroq({
-    model: "openai/gpt-oss-120b",
-})
+  apiKey: process.env.GROQ_API_KEY,
+  model: "openai/gpt-oss-20b",
+});
 
-const gemini = new new ChatGoogleGenerativeAI({
-    model: "gemini-2.5-flash",
-})
-
-
-export const getModel = async (agent) => {
-    switch (agent) {
-        case "chat":
-            return groq;
-        case "search":
-            return groq;
-        case "coding":
-            return gemini;
-        default:
-            return groq;;
-    }
-}
+export const getModel = (agent) => {
+  return groq;
+};

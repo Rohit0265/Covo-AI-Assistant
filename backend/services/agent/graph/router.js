@@ -1,4 +1,4 @@
-import { getModel } from "../config/llmmodel"
+import { getModel } from "../config/llmmodel.js";
 
 export const router = async(state)=>{
     const llm = getModel("router")

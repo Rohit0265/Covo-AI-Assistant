@@ -1,8 +1,16 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
+
+const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+
+if (!apiKey) {
+  console.warn(
+    "Missing VITE_FIREBASE_API_KEY in frontend/.env file! Please set VITE_FIREBASE_API_KEY."
+  );
+}
+
 const firebaseConfig = {
-  apiKey:   import.meta.env.VITE_FIREBASE_API_KEY,
+  apiKey: apiKey || "placeholder-api-key",
   authDomain: "aibot-c6db1.firebaseapp.com",
   projectId: "aibot-c6db1",
   storageBucket: "aibot-c6db1.firebasestorage.app",
@@ -10,11 +18,8 @@ const firebaseConfig = {
   appId: "1:127271282710:web:17569cd1df722dc29a6d37"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
 const auth = getAuth(app);
-
 const googleProvider = new GoogleAuthProvider();
 
-export {auth,googleProvider}
+export { auth, googleProvider };

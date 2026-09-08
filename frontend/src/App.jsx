@@ -9,12 +9,15 @@ const App = () => {
 
   const dispatch= useDispatch()
 
-  useEffect(async () => {
-
-    await getCurrentUser();
-    dispatch(setUserData(data))
-
-  }, []);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const data = await getCurrentUser();
+      if (data) {
+        dispatch(setUserData(data));
+      }
+    };
+    fetchUser();
+  }, [dispatch]);
 
   
   return (

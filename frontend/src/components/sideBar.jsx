@@ -1,111 +1,166 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import api from '../utils/axios';
+import logout from '../features/logout';
+import { setUserData } from '../redux/userSlice';
 
-const conversations = [
-  'Build auth flow',
-  'Firebase login issue',
-  'React sidebar layout',
-  'API error handling',
-  'Dashboard polish',
-  'Project ideas',
-];
-
-const sideBar = () => {
+const SideBar = ({
+  activeConversationId,
+  onSelectConversation,
+  conversations = [],
+  setConversations,
+  onNewChat,
+  loading = false
+}) => {
+  const dispatch = useDispatch();
   const userData = useSelector((state) => state.user.userData);
-  const displayName = userData?.name || userData?.displayName || 'Guest user';
-  const email = userData?.email || 'Sign in to sync chats';
-  const initials = displayName
+
+  const displayName = userData?.name || userData?.displayName || userData?.username || 'Guest user';
+  const avatarUrl = userData?.avatar;
+  const initials = String(displayName)
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0])
     .join('')
-    .toUpperCase() || 'G';
+    .toUpperCase() || 'U';
+
+  const handleLogout = async () => {
+    await logout();
+    dispatch(setUserData(null));
+  };
 
   return (
-    <aside className="fixed lg:static inset-y-0 left-0 z-50 flex h-screen w-[270px] shrink-0 flex-col bg-[#171717] text-[#ececec]">
-      <div className="flex h-14 items-center justify-between px-3">
+    <aside className="h-screen w-[270px] shrink-0 border-r border-zinc-800/60 flex flex-col bg-[#111218] text-[#ececec] select-none">
+      {/* Header */}
+      <div className="flex h-14 items-center justify-between px-4">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-700/60 bg-zinc-800/80 text-white font-semibold">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M9 3v18" />
+            </svg>
+          </div>
+          <span className="font-semibold text-base tracking-tight text-white">CortexAI</span>
+          <span className="bg-[#20183b] text-[#a78bfa] border border-[#3b2a68] text-[10px] font-medium px-2 py-0.5 rounded-full">
+            free
+          </span>
+        </div>
+
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-white/10 hover:text-white"
-          aria-label="Open sidebar menu"
+          onClick={onNewChat}
+          className="text-zinc-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800/60 transition cursor-pointer"
+          title="New Chat"
         >
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
           </svg>
         </button>
-
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-white/10 hover:text-white"
-            aria-label="Search chats"
-          >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="m21 21-4.7-4.7M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-white/10 hover:text-white"
-            aria-label="New chat"
-          >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
       </div>
 
-      <div className="px-3 pb-3">
+      {/* New Chat Button */}
+      <div className="px-4 py-3">
         <button
           type="button"
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition hover:bg-white/10"
+          onClick={onNewChat}
+          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-medium shadow-md shadow-purple-950/20 transition-all text-sm cursor-pointer"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-sm font-semibold text-black">
-            AI
-          </span>
-          <span>New conversation</span>
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+          </svg>
+          <span>New Chat</span>
         </button>
       </div>
 
-      <nav className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
-        <p className="px-3 py-2 text-xs font-medium text-zinc-500">Conversations</p>
-        <div className="space-y-1">
-          {conversations.map((conversation, index) => (
-            <button
-              type="button"
-              key={conversation}
-              className={`group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition ${
-                index === 0 ? 'bg-white/10 text-white' : 'text-zinc-300 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              <span className="min-w-0 truncate">{conversation}</span>
-              <span className="ml-2 hidden text-zinc-500 group-hover:block">...</span>
-            </button>
-          ))}
+      {/* Recents Section */}
+      <nav className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
+        <p className="px-2 py-2 text-[11px] font-semibold text-zinc-500 tracking-wider uppercase">RECENTS</p>
+        <div className="space-y-1.5">
+          {loading ? (
+            <p className="px-2 py-2 text-xs text-zinc-500">Loading chats...</p>
+          ) : conversations && conversations.length > 0 ? (
+            conversations.map((item) => {
+              const isSelected = activeConversationId === (item._id || item.id);
+              return (
+                <button
+                  type="button"
+                  key={item._id || item.id}
+                  onClick={() => onSelectConversation && onSelectConversation(item._id || item.id)}
+                  className={`group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-left text-sm transition-all border cursor-pointer ${
+                    isSelected
+                      ? 'bg-zinc-800/90 border-zinc-700/80 text-white font-medium shadow-sm'
+                      : 'bg-transparent border-transparent text-zinc-300 hover:bg-zinc-800/40 hover:text-white'
+                  }`}
+                >
+                  <div className={`p-1.5 rounded-lg border transition ${
+                    isSelected ? 'bg-zinc-700/80 border-zinc-600 text-white' : 'bg-[#1b1c24] border-zinc-800/80 text-zinc-400 group-hover:text-zinc-200'
+                  }`}>
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <span className="min-w-0 flex-1 truncate">{item.title || 'New Chat'}</span>
+                </button>
+              );
+            })
+          ) : (
+            <p className="px-2 py-2 text-xs text-zinc-500">No conversations yet</p>
+          )}
         </div>
       </nav>
 
-      <div className="border-t border-white/10 p-2">
-        <button
-          type="button"
-          className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition hover:bg-white/10"
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-sm font-semibold text-white">
-            {initials}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-medium text-white">{displayName}</span>
-            <span className="block truncate text-xs text-zinc-400">{email}</span>
-          </span>
-          <svg className="h-4 w-4 shrink-0 text-zinc-500" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM19 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM5 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-        </button>
+      {/* Footer / User Info & Logout */}
+      <div className="border-t border-zinc-800/60 p-3 mt-auto">
+        <div className="flex items-center justify-between p-1.5 rounded-xl transition hover:bg-zinc-800/40">
+          <div className="flex items-center gap-3 min-w-0">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                className="w-10 h-10 rounded-xl object-cover border border-zinc-700/50"
+              />
+            ) : (
+              <div className="flex w-10 h-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-zinc-700 to-zinc-800 border border-zinc-700/50 text-sm font-semibold text-white">
+                {initials}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-semibold text-white">{displayName}</span>
+              <span className="block truncate text-xs text-zinc-400">Free Plan</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 shrink-0 ml-2">
+            <button
+              type="button"
+              className="p-1.5 text-amber-400 hover:bg-zinc-800 rounded-lg transition cursor-pointer"
+              title="Coins"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 6v12M15 9.5a2.5 2.5 0 00-5 0c0 2 3 2.5 3 4.5a2.5 2.5 0 01-5 0" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-zinc-800 rounded-lg transition cursor-pointer"
+              title="Log out"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" strokeLinecap="round" strokeLinejoin="round" />
+                <polyline points="16 17 21 12 16 7" strokeLinecap="round" strokeLinejoin="round" />
+                <line x1="21" y1="12" x2="9" y2="12" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </aside>
   );
 };
 
-export default sideBar
+export default SideBar;
