@@ -61,3 +61,14 @@ export const getMessages = async (req, res) => {
     return res.status(500).json({ error: `error in finding message ${error}` });
   }
 };
+
+export const deleteConversation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Conversation.findByIdAndDelete(id);
+    await Message.deleteMany({ conversationId: id });
+    return res.status(200).json({ message: "Conversation deleted" });
+  } catch (error) {
+    return res.status(500).json({ error: `delete conversation error ${error}` });
+  }
+};
