@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import api from '../utils/axios';
 
 const ChatArea = ({
@@ -244,8 +246,48 @@ const ChatArea = ({
                     </div>
                   ) : (
                     /* Assistant Message Card */
-                    <div className="bg-[#1a1b22] text-zinc-200 border border-zinc-800/80 px-5 py-4 rounded-2xl rounded-tl-xs text-sm max-w-[85%] leading-relaxed shadow-sm break-words whitespace-pre-wrap">
-                      {msg.content}
+                    <div className="bg-[#1a1b22] text-zinc-200 border border-zinc-800/80 px-5 py-4 rounded-2xl rounded-tl-xs text-sm max-w-[85%] leading-relaxed shadow-sm break-words">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          code({ node, className, children, ...props }) {
+                            const match = /language-(\w+)/.exec(className || '');
+                            const isInline = !match && !String(children).includes('\n');
+                            return !isInline ? (
+                              <div className="my-3 rounded-lg overflow-hidden border border-zinc-800 bg-[#0d0e12]">
+                                <div className="bg-zinc-900/90 px-4 py-1.5 border-b border-zinc-800 text-[11px] font-mono text-zinc-400 flex items-center justify-between">
+                                  <span className="capitalize">{match ? match[1] : 'code'}</span>
+                                </div>
+                                <pre className="p-4 overflow-x-auto text-xs font-mono text-emerald-400 leading-relaxed">
+                                  <code>{children}</code>
+                                </pre>
+                              </div>
+                            ) : (
+                              <code className="bg-zinc-800/80 text-purple-300 px-1.5 py-0.5 rounded text-xs font-mono">
+                                {children}
+                              </code>
+                            );
+                          },
+                          p({ children }) {
+                            return <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>;
+                          },
+                          ul({ children }) {
+                            return <ul className="list-disc list-inside my-2 space-y-1">{children}</ul>;
+                          },
+                          ol({ children }) {
+                            return <ol className="list-decimal list-inside my-2 space-y-1">{children}</ol>;
+                          },
+                          a({ children, href }) {
+                            return (
+                              <a href={href} target="_blank" rel="noreferrer" className="text-purple-400 underline hover:text-purple-300">
+                                {children}
+                              </a>
+                            );
+                          }
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
                     </div>
                   )}
                 </div>
