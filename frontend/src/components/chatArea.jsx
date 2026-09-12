@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import api from '../utils/axios';
+import CodeBlock from './CodeBlock';
+import ImageLightbox from './ImageLightbox';
+import ResponseActions from './ResponseActions';
 
 // Helper to generate concise 3-4 word title from prompt
 const generateTitle = (text) => {
@@ -48,8 +51,14 @@ const ChatArea = ({
   const [loading, setLoading] = useState(false);
   const [fetchingMessages, setFetchingMessages] = useState(false);
 
+  // Image Lightbox State
+  const [activeLightboxImg, setActiveLightboxImg] = useState(null);
+
+  // Scroll Management
+  const chatContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
 
   const modeOptions = [
     {
@@ -127,9 +136,18 @@ const ChatArea = ({
     }
   ];
 
-  // Auto-scroll to bottom of messages
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // Auto-scroll to bottom if user is not manually scrolling up
+  const scrollToBottom = (force = false) => {
+    if (force || !userScrolledUp) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleChatScroll = () => {
+    if (!chatContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 120;
+    setUserScrolledUp(!isAtBottom);
   };
 
   useEffect(() => {
@@ -149,6 +167,7 @@ const ChatArea = ({
 
     if (currentConv && Array.isArray(currentConv.messages) && currentConv.messages.length > 0) {
       setMessages(currentConv.messages);
+      setUserScrolledUp(false);
       return;
     }
 
@@ -158,6 +177,7 @@ const ChatArea = ({
         const { data } = await api.get(`/api/chat/get-messages/${activeConversationId}`);
         if (Array.isArray(data)) {
           setMessages(data);
+          setUserScrolledUp(false);
           if (setConversations) {
             setConversations((prev) =>
               prev.map((c) =>
@@ -248,7 +268,9 @@ const ChatArea = ({
     // 3. GENERATE ASSISTANT RESPONSE
     try {
       setLoading(true);
+      setUserScrolledUp(false);
       let responseContent = '';
+      let returnedImages = [];
 
       try {
         const { data } = await api.post('/api/agent/chat', {
@@ -257,8 +279,10 @@ const ChatArea = ({
           agent: selectedMode
         });
         responseContent =
+          data?.answer ||
           data?.response ||
           (typeof data === 'string' ? data : "I'm CortexAI. How can I assist you further?");
+        returnedImages = data?.images || [];
       } catch (err) {
         console.warn('Agent API unreachable or offline, using assistant response:', err);
         responseContent = `I have received your request for: "${text}". How can I help you further?`;
@@ -269,6 +293,7 @@ const ChatArea = ({
         conversationId: targetConvId,
         role: 'assistant',
         content: responseContent,
+        images: returnedImages,
         createdAt: new Date().toISOString()
       };
 
@@ -292,6 +317,17 @@ const ChatArea = ({
     }
   };
 
+  // Regenerate last user prompt
+  const handleRegenerate = (msgIndex) => {
+    // Find preceding user message
+    for (let i = msgIndex - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        handleSendMessage(messages[i].content);
+        break;
+      }
+    }
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -308,6 +344,13 @@ const ChatArea = ({
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#0e0f14] text-zinc-100 overflow-hidden relative select-none">
+      {/* Lightbox Modal */}
+      <ImageLightbox
+        src={activeLightboxImg?.src}
+        alt={activeLightboxImg?.alt}
+        onClose={() => setActiveLightboxImg(null)}
+      />
+
       {/* Top Header Bar */}
       <div className="h-14 shrink-0 border-b border-zinc-800/80 px-6 flex items-center justify-between bg-[#111218]/90 backdrop-blur-md z-10">
         <div className="flex items-center gap-3">
@@ -338,8 +381,12 @@ const ChatArea = ({
         )}
       </div>
 
-      {/* Main Messages Container */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8 space-y-6">
+      {/* Main Messages Container with Sleek Scrollbar */}
+      <div
+        ref={chatContainerRef}
+        onScroll={handleChatScroll}
+        className="flex-1 overflow-y-auto px-4 py-6 md:px-8 space-y-6 overflow-x-hidden relative"
+      >
         {fetchingMessages ? (
           <div className="h-full flex items-center justify-center text-zinc-500 text-sm">
             <div className="flex items-center gap-2">
@@ -385,7 +432,7 @@ const ChatArea = ({
           </div>
         ) : (
           /* Messages List */
-          <div className="max-w-4xl mx-auto space-y-6 w-full">
+          <div className="max-w-3xl sm:max-w-4xl mx-auto space-y-6 w-full">
             {messages.map((msg, index) => {
               const isUser = msg.role === 'user';
               return (
@@ -400,64 +447,165 @@ const ChatArea = ({
                     </div>
                   ) : (
                     /* Assistant Message Card */
-                    <div className="bg-[#1a1b22] text-zinc-200 border border-zinc-800/80 px-5 py-4 rounded-2xl rounded-tl-xs text-sm max-w-[85%] leading-relaxed shadow-sm break-words">
+                    <div className="bg-[#191a22] text-zinc-200 border border-zinc-800/80 px-5 py-4.5 rounded-2xl rounded-tl-xs text-sm w-full max-w-[92%] sm:max-w-[85%] leading-relaxed shadow-sm break-words">
+                      {/* Search Image Grid */}
+                      {msg.images && msg.images.length > 0 && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-4">
+                          {msg.images.map((imgUrl, imgIdx) => (
+                            <div
+                              key={imgIdx}
+                              onClick={() => setActiveLightboxImg({ src: imgUrl, alt: `Result ${imgIdx + 1}` })}
+                              className="group block overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/80 aspect-video relative cursor-pointer hover:border-purple-500/60 transition-all duration-200 shadow-sm"
+                            >
+                              <img
+                                src={imgUrl}
+                                alt={`Search result ${imgIdx + 1}`}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  if (e.target.parentElement) {
+                                    e.target.parentElement.style.display = 'none';
+                                  }
+                                }}
+                              />
+                              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <svg className="w-5 h-5 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M15 3h6v6M14 10l7-7M9 21H3v-6M10 14l-7 7" />
+                                </svg>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Markdown Content */}
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
-                          code({ node, className, children, ...props }) {
+                          code({ node, inline, className, children, ...props }) {
                             const match = /language-(\w+)/.exec(className || '');
-                            const isInline = !match && !String(children).includes('\n');
-                            return !isInline ? (
-                              <div className="my-3 rounded-lg overflow-hidden border border-zinc-800 bg-[#0d0e12]">
-                                <div className="bg-zinc-900/90 px-4 py-1.5 border-b border-zinc-800 text-[11px] font-mono text-zinc-400 flex items-center justify-between">
-                                  <span className="capitalize">{match ? match[1] : 'code'}</span>
-                                </div>
-                                <pre className="p-4 overflow-x-auto text-xs font-mono text-emerald-400 leading-relaxed">
-                                  <code>{children}</code>
-                                </pre>
-                              </div>
-                            ) : (
-                              <code className="bg-zinc-800/80 text-purple-300 px-1.5 py-0.5 rounded text-xs font-mono">
+                            const isBlock = match || String(children).includes('\n');
+                            if (isBlock) {
+                              return (
+                                <CodeBlock
+                                  language={match ? match[1] : ''}
+                                  value={String(children)}
+                                />
+                              );
+                            }
+                            return (
+                              <code className="bg-[#222432] text-purple-300 px-1.5 py-0.5 rounded-md text-xs font-mono border border-zinc-700/40">
                                 {children}
                               </code>
                             );
                           },
+                          h1({ children }) {
+                            return <h1 className="text-xl font-bold text-white mt-5 mb-2.5 tracking-tight border-b border-zinc-800 pb-1.5">{children}</h1>;
+                          },
+                          h2({ children }) {
+                            return <h2 className="text-lg font-bold text-white mt-4 mb-2 tracking-tight">{children}</h2>;
+                          },
+                          h3({ children }) {
+                            return <h3 className="text-base font-semibold text-zinc-100 mt-3 mb-1.5">{children}</h3>;
+                          },
+                          h4({ children }) {
+                            return <h4 className="text-sm font-semibold text-zinc-200 mt-2 mb-1">{children}</h4>;
+                          },
                           p({ children }) {
-                            return <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>;
+                            return <p className="mb-3 last:mb-0 leading-relaxed text-zinc-200 text-sm break-words">{children}</p>;
                           },
                           ul({ children }) {
-                            return <ul className="list-disc list-inside my-2 space-y-1">{children}</ul>;
+                            return <ul className="list-disc pl-5 my-2 space-y-1 text-zinc-200 text-sm">{children}</ul>;
                           },
                           ol({ children }) {
-                            return <ol className="list-decimal list-inside my-2 space-y-1">{children}</ol>;
+                            return <ol className="list-decimal pl-5 my-2 space-y-1 text-zinc-200 text-sm">{children}</ol>;
+                          },
+                          li({ children }) {
+                            return <li className="leading-relaxed mb-0.5">{children}</li>;
+                          },
+                          blockquote({ children }) {
+                            return (
+                              <blockquote className="border-l-4 border-purple-500/80 pl-4 py-1.5 my-3 bg-purple-950/20 rounded-r-lg text-zinc-300 italic text-sm border-zinc-700/40">
+                                {children}
+                              </blockquote>
+                            );
+                          },
+                          hr() {
+                            return <hr className="my-4 border-zinc-800/80" />;
                           },
                           a({ children, href }) {
                             return (
-                              <a href={href} target="_blank" rel="noreferrer" className="text-purple-400 underline hover:text-purple-300">
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-purple-400 font-medium underline underline-offset-2 hover:text-purple-300 transition-colors break-all"
+                              >
                                 {children}
                               </a>
+                            );
+                          },
+                          table({ children }) {
+                            return (
+                              <div className="overflow-x-auto my-3 rounded-xl border border-zinc-800/80">
+                                <table className="w-full text-xs text-left border-collapse bg-[#12131a] text-zinc-200">{children}</table>
+                              </div>
+                            );
+                          },
+                          thead({ children }) {
+                            return <thead className="bg-[#181922] text-zinc-300 uppercase text-[11px] font-semibold border-b border-zinc-800">{children}</thead>;
+                          },
+                          tbody({ children }) {
+                            return <tbody className="divide-y divide-zinc-800/60">{children}</tbody>;
+                          },
+                          tr({ children }) {
+                            return <tr className="hover:bg-zinc-800/30 transition-colors">{children}</tr>;
+                          },
+                          th({ children }) {
+                            return <th className="px-3.5 py-2.5 font-medium border-r border-zinc-800/80 last:border-r-0">{children}</th>;
+                          },
+                          td({ children }) {
+                            return <td className="px-3.5 py-2.5 border-r border-zinc-800/80 last:border-r-0 break-words">{children}</td>;
+                          },
+                          img({ src, alt }) {
+                            return (
+                              <span
+                                className="inline-block my-3 cursor-pointer group"
+                                onClick={() => setActiveLightboxImg({ src, alt })}
+                              >
+                                <img
+                                  src={src}
+                                  alt={alt || 'Embedded image'}
+                                  className="max-h-96 rounded-xl border border-zinc-800 object-contain shadow-md group-hover:opacity-95 group-hover:scale-[1.01] transition duration-200"
+                                />
+                              </span>
                             );
                           }
                         }}
                       >
                         {msg.content}
                       </ReactMarkdown>
+
+                      {/* Response Action Tools */}
+                      <ResponseActions
+                        content={msg.content}
+                        onRegenerate={() => handleRegenerate(index)}
+                      />
                     </div>
                   )}
                 </div>
               );
             })}
 
-            {/* Loading / Generating indicator */}
+            {/* Streaming Caret & Generator Indicator */}
             {loading && (
               <div className="flex justify-start w-full">
-                <div className="bg-[#1a1b22] border border-zinc-800/80 px-4 py-3 rounded-2xl rounded-tl-xs flex items-center gap-2">
-                  <span className="text-xs text-zinc-400">CortexAI is thinking</span>
-                  <span className="flex gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce"></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:0.2s]"></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce [animation-delay:0.4s]"></span>
-                  </span>
+                <div className="bg-[#191a22] border border-zinc-800/80 px-5 py-4 rounded-2xl rounded-tl-xs flex items-center gap-3 text-sm text-zinc-300 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse"></span>
+                    <span className="text-xs text-zinc-400 font-medium">CortexAI is generating response...</span>
+                    <span className="font-mono text-purple-400 animate-caret font-bold text-sm">▌</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -465,11 +613,28 @@ const ChatArea = ({
             <div ref={messagesEndRef} />
           </div>
         )}
+
+        {/* Floating Scroll-to-Bottom Button */}
+        {userScrolledUp && (
+          <button
+            type="button"
+            onClick={() => {
+              setUserScrolledUp(false);
+              scrollToBottom(true);
+            }}
+            className="fixed bottom-24 right-8 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-600/90 hover:bg-purple-500 text-white text-xs font-medium shadow-xl backdrop-blur-md border border-purple-400/30 transition-all duration-200 cursor-pointer animate-fadeIn"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M12 5v14M19 12l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>Scroll to bottom</span>
+          </button>
+        )}
       </div>
 
       {/* Bottom Input Area */}
       <div className="shrink-0 px-4 pb-5 pt-2 bg-gradient-to-t from-[#0e0f14] via-[#0e0f14] to-transparent">
-        <div className="max-w-4xl mx-auto bg-[#181920] border border-zinc-800/80 rounded-2xl p-3 flex flex-col gap-2.5 shadow-2xl focus-within:border-zinc-700 transition-colors">
+        <div className="max-w-3xl sm:max-w-4xl mx-auto bg-[#181920] border border-zinc-800/80 rounded-2xl p-3 flex flex-col gap-2.5 shadow-2xl focus-within:border-zinc-700 transition-colors">
           {/* Mode Pill Selectors Bar */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 no-scrollbar select-none">
             {modeOptions.map((item) => {

@@ -40,9 +40,11 @@ export const agent = async (req, res) => {
     }
 
     return res.status(200).json({ 
-      answer:result.aiResponse,
-      images:result.images,
-     });
+      response: result.aiResponse,
+      answer: result.aiResponse,
+      images: result.images || [],
+      agent: result.agent
+    });
   } catch (error) {
     console.error("Agent execution error:", error);
     return res.status(500).json({ message: `Agent error: ${error.message || error}` });
