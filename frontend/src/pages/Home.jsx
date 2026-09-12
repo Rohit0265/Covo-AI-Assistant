@@ -19,24 +19,59 @@ const Home = () => {
 
   const userData = useSelector((state) => state.user.userData);
 
-  // Fetch all user conversations upon login / user load
+  // Fetch all user conversations upon login / user load and load from localStorage
   const fetchConversations = async () => {
-    if (!userData?._id && !userData?.id) {
-      setConversations([]);
-      setActiveConversationId(null);
-      return;
+    // 1. Immediately load local stored conversations to prevent disappearing on refresh
+    const localData = localStorage.getItem('cortex_conversations');
+    const savedActiveId = localStorage.getItem('cortex_active_conv_id');
+    let loadedFromLocal = false;
+
+    if (localData) {
+      try {
+        const parsed = JSON.parse(localData);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setConversations(parsed);
+          loadedFromLocal = true;
+          if (savedActiveId && parsed.some((c) => (c._id || c.id) === savedActiveId)) {
+            setActiveConversationId(savedActiveId);
+          } else {
+            setActiveConversationId(parsed[0]._id || parsed[0].id);
+          }
+        }
+      } catch (e) {
+        console.error('Error reading saved conversations from local storage:', e);
+      }
     }
+
+    if (!userData?._id && !userData?.id) return;
+
     try {
       setLoadingChats(true);
       const { data } = await api.get('/api/chat/get-conversations');
-      if (Array.isArray(data)) {
-        setConversations(data);
-        if (data.length > 0 && !activeConversationId) {
+      if (Array.isArray(data) && data.length > 0) {
+        setConversations((prev) => {
+          const map = new Map();
+          // Keep local first (to preserve messages)
+          prev.forEach((c) => map.set(c._id || c.id, c));
+          data.forEach((c) => {
+            const id = c._id || c.id;
+            const existing = map.get(id);
+            map.set(id, {
+              ...c,
+              messages: existing?.messages && existing.messages.length > 0 ? existing.messages : (c.messages || [])
+            });
+          });
+          const merged = Array.from(map.values());
+          localStorage.setItem('cortex_conversations', JSON.stringify(merged));
+          return merged;
+        });
+
+        if (!loadedFromLocal) {
           setActiveConversationId(data[0]._id || data[0].id);
         }
       }
     } catch (error) {
-      console.error('Error fetching conversations:', error);
+      console.error('Error fetching conversations from backend:', error);
     } finally {
       setLoadingChats(false);
     }
@@ -46,30 +81,41 @@ const Home = () => {
     fetchConversations();
   }, [userData?._id, userData?.id]);
 
-  // Create new conversation
-  const handleNewConversation = async () => {
-    if (!userData) return;
-    try {
-      const { data } = await api.get('/api/chat/create-conversation');
-      if (data && (data._id || data.id)) {
-        const newId = data._id || data.id;
-        setConversations((prev) => [data, ...prev]);
-        setActiveConversationId(newId);
-      }
-    } catch (error) {
-      console.error('Error creating conversation:', error);
+  // Persist conversations to local storage whenever state changes
+  useEffect(() => {
+    if (conversations && conversations.length > 0) {
+      localStorage.setItem('cortex_conversations', JSON.stringify(conversations));
     }
+  }, [conversations]);
+
+  // Persist active conversation ID
+  useEffect(() => {
+    if (activeConversationId) {
+      localStorage.setItem('cortex_active_conv_id', activeConversationId);
+    } else {
+      localStorage.removeItem('cortex_active_conv_id');
+    }
+  }, [activeConversationId]);
+
+  // Click New Chat: clears current active chat state without creating empty entry in sidebar
+  const handleNewChat = () => {
+    setActiveConversationId(null);
+    localStorage.removeItem('cortex_active_conv_id');
   };
 
-  // Called by ChatArea when it auto-creates a conversation during first message send
+  // Called when a new conversation is created with its initial message
   const handleConversationCreated = (newConv) => {
     if (newConv && (newConv._id || newConv.id)) {
+      const newId = newConv._id || newConv.id;
       setConversations((prev) => {
-        const exists = prev.some((c) => (c._id || c.id) === (newConv._id || newConv.id));
+        const exists = prev.some((c) => (c._id || c.id) === newId);
         if (exists) return prev;
-        return [newConv, ...prev];
+        const updated = [newConv, ...prev];
+        localStorage.setItem('cortex_conversations', JSON.stringify(updated));
+        return updated;
       });
-      setActiveConversationId(newConv._id || newConv.id);
+      setActiveConversationId(newId);
+      localStorage.setItem('cortex_active_conv_id', newId);
     }
   };
 
@@ -113,7 +159,7 @@ const Home = () => {
         onSelectConversation={(id) => setActiveConversationId(id)}
         conversations={conversations}
         setConversations={setConversations}
-        onNewChat={handleNewConversation}
+        onNewChat={handleNewChat}
         loading={loadingChats}
       />
 
@@ -121,10 +167,13 @@ const Home = () => {
       <div className="flex-1 flex flex-row h-full overflow-hidden relative">
         <ChatArea
           activeConversationId={activeConversationId}
+          setActiveConversationId={setActiveConversationId}
           activeConversationTitle={activeConversationTitle}
           onSelectConversation={(id) => setActiveConversationId(id)}
-          onNewChat={handleNewConversation}
+          onNewChat={handleNewChat}
           onConversationCreated={handleConversationCreated}
+          conversations={conversations}
+          setConversations={setConversations}
         />
         <Artifacts />
       </div>

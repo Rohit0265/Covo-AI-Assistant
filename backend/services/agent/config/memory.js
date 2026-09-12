@@ -1,5 +1,5 @@
-import redis from "../../utils/redis.js";
-import { getMessages } from "../utils/getMessages";
+import redis from "../../../shared/redis/redis.js";
+import { getMessages } from "../utils/getMessages.js";
 
 
 export const getMemory =async (conversationId)=>{

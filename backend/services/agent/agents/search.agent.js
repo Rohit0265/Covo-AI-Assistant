@@ -1,13 +1,21 @@
+import { TavilySearch } from "@langchain/tavily";
 import { getModel } from "../config/llmmodel.js";
 
-const systemPrompt = "You are an intelligent search assistant. Provide concise, accurate, and direct answers to the user's queries.";
-
 export const search = async (state) => {
-  const llm = getModel("groq");
-  const response = await llm.invoke([
-    { role: "system", content: systemPrompt },
-    { role: "human", content: state.prompt }
-  ]);
-  // The graph routes search -> chat, so we pass the output forward
-  return { ...state, prompt: `Search Result: ${response.content}\nUser Request: ${state.prompt}` };
-};
+  const apiKey = process.env.TAVILY_API_KEY;
+
+  if (apiKey) {
+    try {
+      const tavily = new TavilySearch({ tavilyApiKey: apiKey });
+      const searchOutput = await tavily.invoke(state.prompt);
+      const searchContent = typeof searchOutput === "string" ? searchOutput : JSON.stringify(searchOutput);
+
+      return {
+        ...state,
+        prompt: `Web Search Context (Tavily):\n${searchContent}\n\nUser Question: ${state.prompt}`
+      };
+    } catch (error) {
+      console.error("Tavily search error:", error.message || error);
+    }
+  }
+}
