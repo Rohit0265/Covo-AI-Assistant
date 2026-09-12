@@ -1,10 +1,13 @@
 import axios from "axios";
 import { graph } from "../graph/graph.js";
+import { addMessages } from "@langchain/langgraph";
 
 export const agent = async (req, res) => {
   try {
     const { prompt, conversationId } = req.body;
     const chatServiceUrl = process.env.CHAT_SERVICE_URL || "http://localhost:8002";
+
+    await addMessages(conversationId, "user", prompt);
 
     // 1. Save user message to chat service
     if (conversationId) {
@@ -30,6 +33,7 @@ export const agent = async (req, res) => {
     // 3. Save assistant message to chat service
     if (conversationId) {
       try {
+        await addMessages(conversationId, "assistant", response);
         await axios.post(`${chatServiceUrl}/save-message`, {
           conversationId,
           role: "assistant",
