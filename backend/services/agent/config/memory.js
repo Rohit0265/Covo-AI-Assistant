@@ -1,0 +1,34 @@
+import redis from "../../utils/redis.js";
+import { getMessages } from "../utils/getMessages";
+
+
+export const getMemory =async (conversationId)=>{
+
+    const key = `messages-${conversationId}`
+    const checked = await redis.get(key);
+
+        if (checked) {
+            return JSON.parse(checked);
+        } else {
+            try{
+                const messages = await getMessages(conversationId);
+                await redis.set(key, JSON.stringify(messages), 'EX', 24*60*60);
+                return messages;
+            }catch(error){
+                console.error("Error fetching memory:", error);
+                return null;
+            }
+        }
+}
+
+
+export const addMessages = async(conversationId,role,content)=>{
+    const key = `messages-${conversationId}`
+    const rawMessages = await redis.get(key);
+    const messages = rawMessages ? JSON.parse(rawMessages) : [];
+    messages.push({ role, content });
+    if (messages.length > 20) {
+        messages.shift(); 
+    }
+    await redis.set(key, JSON.stringify(messages), 'EX', 24*60*60);
+}
