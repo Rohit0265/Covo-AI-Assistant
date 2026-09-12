@@ -25,23 +25,24 @@ export const agent = async (req, res) => {
       conversationId,
       agent: selectedAgent || "auto"
     });
-
-    const responseText = result.aiResponse || "I'm CortexAI. How can I help you today?";
-
     // 3. Save assistant message to chat service
     if (conversationId) {
       try {
         await axios.post(`${chatServiceUrl}/save-message`, {
           conversationId,
           role: "assistant",
-          content: responseText
+          content: result.aiResponse,
+          images: result.images
         });
       } catch (err) {
         console.error("Error saving assistant message to chat service:", err.message);
       }
     }
 
-    return res.status(200).json({ response: responseText, agent: result.agent });
+    return res.status(200).json({ 
+      answer:result.aiResponse,
+      images:result.images,
+     });
   } catch (error) {
     console.error("Agent execution error:", error);
     return res.status(500).json({ message: `Agent error: ${error.message || error}` });
