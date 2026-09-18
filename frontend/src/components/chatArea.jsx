@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useDispatch } from 'react-redux';
+import { setArtifacts } from '../redux/messageSlices';
 import api from '../utils/axios';
 import CodeBlock from './CodeBlock';
 import ImageLightbox from './ImageLightbox';
@@ -45,6 +47,7 @@ const ChatArea = ({
   conversations = [],
   setConversations
 }) => {
+  const dispatch = useDispatch();
   const [selectedMode, setSelectedMode] = useState('auto');
   const [messages, setMessages] = useState([]);
   const [inputPrompt, setInputPrompt] = useState('');
@@ -158,6 +161,7 @@ const ChatArea = ({
   useEffect(() => {
     if (!activeConversationId) {
       setMessages([]);
+      dispatch(setArtifacts([]));
       return;
     }
 
@@ -167,6 +171,8 @@ const ChatArea = ({
 
     if (currentConv && Array.isArray(currentConv.messages) && currentConv.messages.length > 0) {
       setMessages(currentConv.messages);
+      const allArtifacts = currentConv.messages.flatMap(msg => msg.artifacts || []);
+      dispatch(setArtifacts(allArtifacts));
       setUserScrolledUp(false);
       return;
     }
@@ -177,6 +183,8 @@ const ChatArea = ({
         const { data } = await api.get(`/api/chat/get-messages/${activeConversationId}`);
         if (Array.isArray(data)) {
           setMessages(data);
+          const allArtifacts = data.flatMap(msg => msg.artifacts || []);
+          dispatch(setArtifacts(allArtifacts));
           setUserScrolledUp(false);
           if (setConversations) {
             setConversations((prev) =>
@@ -271,6 +279,7 @@ const ChatArea = ({
       setUserScrolledUp(false);
       let responseContent = '';
       let returnedImages = [];
+      let returnedArtifacts = [];
 
       try {
         const { data } = await api.post('/api/agent/chat', {
@@ -283,6 +292,11 @@ const ChatArea = ({
           data?.response ||
           (typeof data === 'string' ? data : "I'm CortexAI. How can I assist you further?");
         returnedImages = data?.images || [];
+        returnedArtifacts = data?.artifacts || [];
+        
+        if (returnedArtifacts.length > 0) {
+          dispatch(setArtifacts(returnedArtifacts));
+        }
       } catch (err) {
         console.warn('Agent API unreachable or offline, using assistant response:', err);
         responseContent = `I have received your request for: "${text}". How can I help you further?`;
@@ -294,6 +308,7 @@ const ChatArea = ({
         role: 'assistant',
         content: responseContent,
         images: returnedImages,
+        artifacts: returnedArtifacts,
         createdAt: new Date().toISOString()
       };
 

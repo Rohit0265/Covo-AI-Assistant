@@ -57,6 +57,7 @@ Rules:
 - Hover Effects
 - Beautiful spacing
 - Single page unless user asks otherwise.
+- Use unsplash real images dont use placeholder.
 
 Return ONLY valid JSON.
 
