@@ -26,7 +26,6 @@ workFlow.addConditionalEdges("router", (state) => {
       return "chat";
     case "search":
       return "search";
-    case "image":
     case "imagegen":
       return "imageGen";
     case "coding":

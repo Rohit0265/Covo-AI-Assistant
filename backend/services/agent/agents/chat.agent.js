@@ -3,6 +3,10 @@ import { getMessages } from "../utils/getMessages.js";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 
 export const chat = async (state) => {
+
+
+  try{
+
   const llm = getModel("chat");
   const history = await getMessages(state.conversationId);
 
@@ -46,4 +50,13 @@ INSTRUCTIONS:
     ...state,
     aiResponse: response.content
   };
+
+
+}catch (error) {
+  console.error("Error in chat agent:", error.message || error);
+  return {
+    ...state,
+    aiResponse: "An error occurred while processing your request. Please try again later."
+  };
+}
 };
