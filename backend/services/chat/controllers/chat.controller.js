@@ -44,7 +44,8 @@ export const saveMessages = async (req, res) => {
       conversationId,
       content,
       role,
-      images
+      images,
+      artifacts
     });
     return res.status(200).json(message);
   } catch (error) {

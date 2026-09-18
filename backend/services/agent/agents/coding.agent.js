@@ -101,13 +101,39 @@ User Request:
       artifacts: [{
         id:Date.now(),
         type:"Project",
-      files: content.files || []}
+      files: content.files || [],
+    title:state.prompt}
       ]
     };
   }
 
-  const res = await llm.invo
+  const res = await llm.invoke(`
+    The user request is :
+    ${intent}
+    Return Markdown only.
 
+Never generate project files.
 
+Use headings like:
+
+# Overview
+
+## Explanation
+
+## Problems
+
+## Improvements
+
+## Best Practices
+
+## Optimized Code (if needed)
+
+User Request:
+
+${state.prompt}
+    `)
+
+    const data = res.content;
+    return { ...state, aiResponse: data ,artifacts: []};
 
 }

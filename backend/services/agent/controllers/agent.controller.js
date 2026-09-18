@@ -31,8 +31,9 @@ export const agent = async (req, res) => {
         await axios.post(`${chatServiceUrl}/save-message`, {
           conversationId,
           role: "assistant",
-          content: result.aiResponse,
-          images: result.images
+          content: result?.aiResponse,
+          images: result?.images,
+          artifacts: result?.artifacts
         });
       } catch (err) {
         console.error("Error saving assistant message to chat service:", err.message);
@@ -40,10 +41,9 @@ export const agent = async (req, res) => {
     }
 
     return res.status(200).json({ 
-      response: result.aiResponse,
-      answer: result.aiResponse,
-      images: result.images || [],
-      agent: result.agent
+      answer: result?.aiResponse,
+      images: result?.images,
+      artifacts: result?.artifacts,
     });
   } catch (error) {
     console.error("Agent execution error:", error);
