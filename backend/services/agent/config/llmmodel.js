@@ -35,7 +35,6 @@ export const getModel = (agent) => {
     case "ppt":
       
     case "image":
-
     case "pdf":
       return gemini;
     case "chat":

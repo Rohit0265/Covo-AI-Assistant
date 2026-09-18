@@ -39,7 +39,7 @@ export const updateConversations = async (req, res) => {
 
 export const saveMessages = async (req, res) => {
   try {
-    const { conversationId, role, content,images } = req.body;
+    const { conversationId, role, content, images, artifacts } = req.body;
     const message = await Message.create({
       conversationId,
       content,

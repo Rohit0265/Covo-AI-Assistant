@@ -59,3 +59,18 @@
 .animate-caret {
   animation: pulseCaret 0.8s infinite;
 }
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+.animate-fadeOut {
+  animation: fadeOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

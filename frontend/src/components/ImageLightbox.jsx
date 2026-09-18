@@ -1,22 +1,32 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const ImageLightbox = ({ src, alt, onClose }) => {
+  const [isClosing, setIsClosing] = useState(false);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        onClose();
+        handleClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, []);
 
-  if (!src) return null;
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsClosing(false);
+      onClose();
+    }, 200); // match animation duration
+  };
+
+  if (!src && !isClosing) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 sm:p-6 transition-all duration-300 animate-fadeIn select-none"
-      onClick={onClose}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 sm:p-6 transition-all duration-200 select-none ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}
+      onClick={handleClose}
     >
       <div
         className="relative max-w-5xl max-h-[90vh] flex flex-col items-center justify-center"
@@ -40,7 +50,7 @@ const ImageLightbox = ({ src, alt, onClose }) => {
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700/60 transition cursor-pointer"
             title="Close image preview (Esc)"
           >
@@ -63,4 +73,3 @@ const ImageLightbox = ({ src, alt, onClose }) => {
 };
 
 export default ImageLightbox;
-

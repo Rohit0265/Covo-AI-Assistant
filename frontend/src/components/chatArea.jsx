@@ -6,6 +6,7 @@ import { setArtifacts } from '../redux/messageSlices';
 import api from '../utils/axios';
 import CodeBlock from './CodeBlock';
 import ImageLightbox from './ImageLightbox';
+import ImageBlock from './ImageBlock';
 import ResponseActions from './ResponseActions';
 
 // Helper to generate concise 3-4 word title from prompt
@@ -584,16 +585,11 @@ const ChatArea = ({
                           },
                           img({ src, alt }) {
                             return (
-                              <span
-                                className="inline-block my-3 cursor-pointer group"
-                                onClick={() => setActiveLightboxImg({ src, alt })}
-                              >
-                                <img
-                                  src={src}
-                                  alt={alt || 'Embedded image'}
-                                  className="max-h-96 rounded-xl border border-zinc-800 object-contain shadow-md group-hover:opacity-95 group-hover:scale-[1.01] transition duration-200"
-                                />
-                              </span>
+                              <ImageBlock
+                                src={src}
+                                alt={alt || 'Embedded image'}
+                                onOpen={() => setActiveLightboxImg({ src, alt })}
+                              />
                             );
                           }
                         }}

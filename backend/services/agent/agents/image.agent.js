@@ -1,5 +1,7 @@
 import { getModel } from "../config/llmmodel.js";
 import axios from "axios";
+import { uploadToS3 } from "../utils/uploadToS3.js";
+import { getFiles } from "../utils/getFroms3.js";
 
 export const image = async (state) => {
 
@@ -9,6 +11,7 @@ export const image = async (state) => {
   
 
   const llm = getModel("image");
+  console.log("Invoking LLM...");
   const res = await llm.invoke(`  You are elite AI image prompt engineer.
 
   Convert the user request into a highly detailed image generation prompt.
@@ -32,21 +35,24 @@ export const image = async (state) => {
   User Request:
   ${state.prompt}`);
 
-    const prompt = res.content.trim();
+    const prompt = res.content.trim().replace(/^["'*]+|["'*]+$/g, '').replace(/\r?\n|\r/g, ' ');
+    console.log("LLM returned prompt:", prompt);
 
-    const imageUrl = `
-    https://gen.pollinations.ai/prompt/${encodeURIComponent(prompt)}`
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
 
-
+    console.log("Fetching image from:", imageUrl);
     const imageRes = await axios.get(imageUrl, { responseType: "arraybuffer" });
-
     
+    console.log("Image fetched, uploading to S3...");
     const buffer = Buffer.from(imageRes.data);
 
     const filename = `image_${Date.now()}.png`;
     await uploadToS3(buffer, filename, "image/png");
+    
+    console.log("Uploaded to S3. Getting signed URL...");
     const downloadUrl = await getFiles(filename, 24*60*60);
-
+    
+    console.log("Success. Returning result.");
     return {
         ...state,
         aiResponse:`

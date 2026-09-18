@@ -1,7 +1,7 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import r2 from "./config/r2.js";
+import r2 from "../config/r2.js";
 
-export const uploadToS3 = async (req, res) => {
+export const uploadToS3 = async (buffer, filename, contentType) => {
 
     await r2.send(
       new PutObjectCommand({
