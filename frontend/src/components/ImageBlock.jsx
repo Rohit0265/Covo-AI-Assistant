@@ -57,66 +57,44 @@ const ImageBlock = ({ src, alt, onOpen }) => {
         />
 
         {status === 'success' && (
-           <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <div className="bg-black/50 backdrop-blur-md rounded-full p-2.5 text-white/90 transform scale-95 group-hover:scale-100 transition-transform">
+           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+              <button
+                onClick={(e) => { e.stopPropagation(); handleCopy(); }}
+                className="bg-zinc-800/80 hover:bg-zinc-700 backdrop-blur-md rounded-full p-2.5 text-white transition-transform transform scale-95 group-hover:scale-100 cursor-pointer"
+                title="Copy URL"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onOpen(); }}
+                className="bg-zinc-800/80 hover:bg-zinc-700 backdrop-blur-md rounded-full p-2.5 text-white transition-transform transform scale-95 group-hover:scale-100 cursor-pointer"
+                title="View Fullscreen"
+              >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M15 3h6v6M14 10l7-7M9 21H3v-6M10 14l-7 7" />
                 </svg>
-              </div>
+              </button>
+              <a
+                href={src}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="bg-zinc-800/80 hover:bg-zinc-700 backdrop-blur-md rounded-full p-2.5 text-white transition-transform transform scale-95 group-hover:scale-100 cursor-pointer"
+                title="Download"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </a>
            </div>
         )}
       </div>
-
-      {/* Action Bar */}
-      {status === 'success' && (
-        <div className="flex items-center justify-between px-3 py-2.5 bg-zinc-900/50 border-t border-zinc-800/80">
-          <div className="text-xs text-zinc-400 font-medium truncate max-w-[40%] pl-1">
-            Generated Image
-          </div>
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition text-[11px] font-medium cursor-pointer"
-              title="Copy Image URL"
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-              </svg>
-              Copy URL
-            </button>
-            <a
-              href={src}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition text-[11px] font-medium cursor-pointer"
-              title="Open Image"
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-              Open
-            </a>
-            <a
-              href={src}
-              download
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition text-[11px] font-medium border border-zinc-700/50 cursor-pointer"
-              title="Download Image"
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              Download
-            </a>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

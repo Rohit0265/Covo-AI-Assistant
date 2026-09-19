@@ -55,14 +55,7 @@ export const image = async (state) => {
     console.log("Success. Returning result.");
     return {
         ...state,
-        aiResponse:`
-        # Image Generated Successfully
-
-        ![Generated Image](${downloadUrl})
-        [Download Image](${downloadUrl})
-
-        Link expires in 10 minutes.
-        `
+        aiResponse: `# Image Generated Successfully\n\n![Generated Image](${downloadUrl})\n\n[Download Image](${downloadUrl})\n\nLink expires in 10 minutes.`
     };
   }catch (error) {
     console.error("Error generating image:", error.message || error);
