@@ -1,4 +1,6 @@
 import { Plans } from "../config/Plans"
+import razorpay from "../config/razorpay"
+import Payment from "../models/payment.models"
 
 export const createOrder = async(req,res)=>{
     try {
@@ -9,7 +11,41 @@ export const createOrder = async(req,res)=>{
         if(!selectedPlans){
             return res.status(404).json({message:"plan not found"})
         }
+        const order = await razorpay.orders.create({
+            amount:selectedPlans.amount*100,
+            currency:"INR",
+            receipt:`receipt-${Date.now()}`
+        })
 
+        await Payment.create({
+            userId,
+            orderId:order.id,
+            amount:selectedPlans.amount,
+            credits:selectedPlans.credits,
+            plans:selectedPlans.id,
+            currency:order.currency,
+            status:"pending"
+        })
+
+        return res.status(200).json({
+            order,plan:selectedPlan
+        })
+
+    } catch (error) {
+        return res.status(500).json({message:`create order eror ${error}`})
+    }
+}
+
+export const verifyPayment =async ()=>{
+    try {
+        const {razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature
+
+        } = req.body
+        const generateSignature = crypto.createHmac("sha256",process.env.RAZORPAY_SECRET_ID)
+        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+        .digest("hex")
     } catch (error) {
         
     }
