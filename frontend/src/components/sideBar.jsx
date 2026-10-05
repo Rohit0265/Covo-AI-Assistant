@@ -74,7 +74,7 @@ const SideBar = ({
 
   return (
     <>
-    <aside className="h-screen w-[270px] shrink-0 border-r border-zinc-800/60 flex flex-col bg-[#111218] text-[#ececec] select-none">
+    <aside className="h-screen w-[270px] shrink-0 border-r border-zinc-800/60 flex flex-col bg-black text-[#ececec] select-none">
       {/* Header */}
       <div className="flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-2.5">

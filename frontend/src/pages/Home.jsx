@@ -152,7 +152,7 @@ const Home = () => {
   const activeConversationTitle = activeConv?.title || 'New Chat';
 
   return (
-    <div className="flex flex-row h-screen w-screen bg-[#0d0e12] text-white overflow-hidden relative select-none">
+    <div className="flex flex-row h-screen w-screen bg-black text-white overflow-hidden relative select-none">
       {/* Sidebar on the left */}
       <SideBar
         activeConversationId={activeConversationId}

@@ -28,19 +28,7 @@ const Artifacts = () => {
   const toggleExpand = () => setIsExpanded(!isExpanded);
 
   if (!artifacts || artifacts.length === 0) {
-    return (
-      <div className={`hidden lg:flex transition-all duration-300 border-l border-zinc-800 flex-col overflow-hidden shrink-0 bg-[#0e0e11] text-zinc-300 ${isExpanded ? 'w-[400px]' : 'w-[50px] items-center'}`}>
-        <button 
-          onClick={toggleExpand} 
-          className="p-3 mt-4 hover:bg-zinc-800/80 rounded-lg cursor-pointer transition text-zinc-400"
-          title="Toggle Artifacts"
-        >
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d={isExpanded ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
-          </svg>
-        </button>
-      </div>
-    );
+    return null;
   }
 
   const handleCopyCode = () => {
@@ -87,10 +75,10 @@ const Artifacts = () => {
   const currentFileContent = activeArtifact?.files?.find(f => f.name === activeFile)?.content || '';
 
   return (
-    <div className={`hidden lg:flex transition-all duration-300 border-l border-zinc-800 flex-col overflow-hidden shrink-0 bg-[#16161e] text-zinc-300 ${isExpanded ? 'w-[450px] xl:w-[500px]' : 'w-[60px] items-center'}`}>
+    <div className={`hidden lg:flex transition-all duration-300 border-l border-zinc-800 flex-col overflow-hidden shrink-0 bg-black text-zinc-300 ${isExpanded ? 'w-[450px] xl:w-[500px]' : 'w-[60px] items-center'}`}>
       
       {/* Sidebar Header / Toggle */}
-      <div className={`p-4 flex items-center ${isExpanded ? 'justify-between' : 'justify-center'} shrink-0 bg-[#121218]`}>
+      <div className={`p-4 flex items-center ${isExpanded ? 'justify-between' : 'justify-center'} shrink-0 bg-black`}>
         {isExpanded && activeArtifact ? (
           <div className="flex items-center gap-3 overflow-hidden pr-2">
             <button 
@@ -173,7 +161,7 @@ const Artifacts = () => {
           
           {/* File Tabs for Code Mode */}
           {viewMode === 'code' && (
-            <div className="flex items-center gap-2 px-2 border-b border-zinc-800/80 bg-[#121218] overflow-x-auto no-scrollbar shrink-0">
+            <div className="flex items-center gap-2 px-2 border-b border-zinc-800/80 bg-black overflow-x-auto no-scrollbar shrink-0">
               {activeArtifact.files?.map(file => {
                 const isActive = activeFile === file.name;
                 return (
@@ -194,7 +182,7 @@ const Artifacts = () => {
           )}
 
           {/* Artifact Content (Preview or Code) */}
-          <div className="flex-1 bg-[#1e1e24] overflow-hidden relative">
+          <div className="flex-1 bg-black overflow-hidden relative">
             {viewMode === 'preview' ? (
               <div className="w-full h-full bg-white">
                 <iframe

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setArtifacts } from '../redux/messageSlices';
 import api from '../utils/axios';
 import CodeBlock from './CodeBlock';
@@ -42,14 +42,12 @@ const generateTitle = (text) => {
 const ChatArea = ({
   activeConversationId,
   setActiveConversationId,
-  activeConversationTitle,
-  onSelectConversation,
-  onNewChat,
   onConversationCreated,
   conversations = [],
   setConversations
 }) => {
   const dispatch = useDispatch();
+  const userData = useSelector((state) => state.user.userData);
   const [selectedMode, setSelectedMode] = useState('auto');
   const [messages, setMessages] = useState([]);
   const [inputPrompt, setInputPrompt] = useState('');
@@ -352,99 +350,15 @@ const ChatArea = ({
     }
   };
 
-  const suggestionPrompts = [
-    { title: 'Explain quantum computing', desc: 'in simple and intuitive terms' },
-    { title: 'Write a React component', desc: 'with clean hooks and Tailwind CSS' },
-    { title: 'Analyze system architecture', desc: 'for a scalable AI microservice app' },
-    { title: 'Brainstorm creative ideas', desc: 'for a new autonomous agent project' }
-  ];
+  const username = userData?.username || userData?.name || userData?.displayName || 'there';
+  const newChatModes = modeOptions;
 
   const markdownComponents = React.useMemo(() => ({
     code({ node, inline, className, children, ...props }) {
       const match = /language-(\w+)/.exec(className || '');
       const isBlock = match || String(children).includes('\n');
       if (isBlock) {
-      
-  const renderInputArea = () => (
-    <div className="w-full max-w-3xl sm:max-w-4xl mx-auto bg-[#181920]/80 backdrop-blur-xl border border-zinc-800/80 rounded-2xl p-3 flex flex-col gap-2.5 shadow-2xl focus-within:border-zinc-700 transition-colors z-10 relative">
-      <textarea
-        ref={textareaRef}
-        value={inputPrompt}
-        onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
-        rows={1}
-        placeholder="Ask anything..."
-        className="w-full bg-transparent text-zinc-100 placeholder-zinc-500 text-sm focus:outline-none resize-none min-h-[36px] max-h-36 leading-relaxed px-1"
-      />
-
-      <div className="flex items-center justify-between pt-1 border-t border-zinc-800/40">
-        <div className="flex items-center gap-1 text-zinc-400">
-          <button
-            type="button"
-            className="p-1.5 hover:text-zinc-200 hover:bg-zinc-800/80 rounded-lg transition cursor-pointer"
-            title="Attach file"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
-            </svg>
-          </button>
-
-          <button
-            type="button"
-            className="p-1.5 hover:text-zinc-200 hover:bg-zinc-800/80 rounded-lg transition cursor-pointer"
-            title="Voice input"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
-              <path d="M19 10v2a7 7 0 01-14 0v-2" />
-              <line x1="12" y1="19" x2="12" y2="23" />
-              <line x1="8" y1="23" x2="16" y2="23" />
-            </svg>
-          </button>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => handleSendMessage()}
-          disabled={!inputPrompt.trim() || loading}
-          className={`p-2.5 rounded-xl flex items-center justify-center transition-all ${
-            inputPrompt.trim() && !loading
-              ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-purple-950/30 cursor-pointer'
-              : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
-          }`}
-          title="Send message"
-        >
-          <svg className="w-4 h-4 transform rotate-45 -translate-y-0.5 -translate-x-0.5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Mode Pill Selectors Bar */}
-      <div className="flex items-center justify-center gap-1.5 overflow-x-auto pb-1 pt-0.5 no-scrollbar select-none mt-1">
-        {modeOptions.map((item) => {
-          const isSelected = selectedMode === item.key;
-          return (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => setSelectedMode(item.key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer ${
-                isSelected
-                  ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-violet-600 text-white shadow-md shadow-purple-950/40 border border-purple-400/30'
-                  : 'bg-[#22232c]/80 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-700/40'
-              }`}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-
-  return (
+        return (
           <CodeBlock
             language={match ? match[1] : ''}
             value={String(children)}
@@ -537,43 +451,13 @@ const ChatArea = ({
   }), [setActiveLightboxImg]);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#0e0f14] text-zinc-100 overflow-hidden relative select-none">
+    <div className="flex-1 flex flex-col h-full bg-black text-zinc-100 overflow-hidden relative select-none">
       {/* Lightbox Modal */}
       <ImageLightbox
         src={activeLightboxImg?.src}
         alt={activeLightboxImg?.alt}
         onClose={() => setActiveLightboxImg(null)}
       />
-
-      {/* Top Header Bar */}
-      <div className="h-14 shrink-0 border-b border-zinc-800/80 px-6 flex items-center justify-between bg-[#111218]/90 backdrop-blur-md z-10">
-        <div className="flex items-center gap-3">
-          <div className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700/60 text-zinc-300">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z" />
-            </svg>
-          </div>
-          <span className="font-semibold text-sm text-zinc-100 truncate max-w-xs sm:max-w-md">
-            {activeConversationTitle || 'New Chat'}
-          </span>
-          <span className="bg-[#1b1c24] text-zinc-400 border border-zinc-800 text-xs px-2.5 py-0.5 rounded-full font-medium">
-            {messages.length} {messages.length === 1 ? 'Message' : 'Messages'}
-          </span>
-        </div>
-
-        {onNewChat && (
-          <button
-            type="button"
-            onClick={onNewChat}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-zinc-800/70 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/60 transition cursor-pointer"
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-            </svg>
-            <span>New Chat</span>
-          </button>
-        )}
-      </div>
 
       {/* Main Messages Container with Sleek Scrollbar */}
       <div
@@ -589,39 +473,64 @@ const ChatArea = ({
             </div>
           </div>
         ) : messages.length === 0 ? (
-          /* Empty / Welcome State */
-          <div className="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto py-12 px-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-violet-600 flex items-center justify-center shadow-xl shadow-purple-950/40 mb-6">
-              <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <path d="M9 3v18" />
-              </svg>
+          /* New chat landing state */
+          <div className="relative isolate min-h-full flex items-center justify-center overflow-hidden -mx-4 -my-6 px-4 py-10 md:-mx-8">
+            <div className="absolute inset-0 -z-10 bg-black" />
+            <div className="absolute inset-0 -z-10 opacity-80 pointer-events-none">
+              <Orb hue={285} hoverIntensity={0.35} rotateOnHover forceHoverState backgroundColor="#000000" />
             </div>
+            <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.22)_46%,#000_100%)]" />
 
-            <h2 className="text-2xl font-bold text-white tracking-tight mb-2">
-              Welcome to CortexAI
-            </h2>
-            <p className="text-sm text-zinc-400 max-w-md mb-8 leading-relaxed">
-              Your intelligent AI assistant powered by autonomous multi-agent systems. Ask questions, brainstorm solutions, or generate code.
-            </p>
+            <div className="w-full max-w-2xl text-center">
+              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.9)] mb-8">
+                Hello {username}
+              </h1>
 
-            {/* Quick Prompt Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg">
-              {suggestionPrompts.map((item, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleSendMessage(item.title)}
-                  className="flex flex-col text-left p-3.5 rounded-xl bg-zinc-900/60 hover:bg-zinc-800/80 border border-zinc-800/80 hover:border-zinc-700 transition cursor-pointer group shadow-sm"
-                >
-                  <span className="text-xs font-semibold text-zinc-200 group-hover:text-purple-300 transition">
-                    {item.title}
-                  </span>
-                  <span className="text-[11px] text-zinc-500 group-hover:text-zinc-400 transition mt-0.5">
-                    {item.desc}
-                  </span>
-                </button>
-              ))}
+              <div className="rounded-2xl border border-white/10 bg-[#101116]/85 p-3 shadow-2xl shadow-black/60 backdrop-blur-xl focus-within:border-purple-400/50 transition-colors">
+                <div className="flex items-end gap-2">
+                  <button
+                    type="button"
+                    className="mb-0.5 shrink-0 p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-xl transition cursor-pointer"
+                    title="Attach file"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" /></svg>
+                  </button>
+                  <textarea
+                    ref={textareaRef}
+                    value={inputPrompt}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    rows={1}
+                    placeholder="Message CortexAI..."
+                    className="flex-1 bg-transparent text-sm sm:text-base text-white placeholder:text-zinc-500 focus:outline-none resize-none min-h-[42px] max-h-36 py-2 leading-relaxed"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSendMessage()}
+                    disabled={!inputPrompt.trim() || loading}
+                    title="Send message"
+                    className={`mb-0.5 shrink-0 p-3 rounded-xl transition-all ${inputPrompt.trim() && !loading ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-purple-950/60 cursor-pointer' : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'}`}
+                  >
+                    <svg className="w-4 h-4 rotate-45 -translate-x-px -translate-y-px" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center justify-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+                {newChatModes.map((item) => {
+                  const isSelected = selectedMode === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setSelectedMode(item.key)}
+                      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-medium transition cursor-pointer ${isSelected ? 'border-purple-400/50 bg-purple-600 text-white shadow-lg shadow-purple-950/60' : 'border-white/10 bg-black/45 text-zinc-300 hover:border-white/25 hover:bg-white/10 hover:text-white'}`}
+                    >
+                      {item.icon}<span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         ) : (
@@ -727,12 +636,84 @@ const ChatArea = ({
       </div>
 
       {/* Bottom Input Area */}
-      {messages.length > 0 && (
-        <div className="shrink-0 px-4 pb-5 pt-2 bg-gradient-to-t from-[#0e0f14] via-[#0e0f14] to-transparent">
-          {renderInputArea()}
+      {messages.length > 0 && <div className="shrink-0 px-4 pb-5 pt-2 bg-gradient-to-t from-black via-black to-transparent">
+        <div className="max-w-3xl sm:max-w-4xl mx-auto bg-[#181920] border border-zinc-800/80 rounded-2xl p-3 flex flex-col gap-2.5 shadow-2xl focus-within:border-zinc-700 transition-colors">
+          {/* Mode Pill Selectors Bar */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 no-scrollbar select-none">
+            {modeOptions.map((item) => {
+              const isSelected = selectedMode === item.key;
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => setSelectedMode(item.key)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer ${
+                    isSelected
+                      ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-violet-600 text-white shadow-md shadow-purple-950/40 border border-purple-400/30'
+                      : 'bg-[#22232c]/80 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-700/40'
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <textarea
+            ref={textareaRef}
+            value={inputPrompt}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            rows={1}
+            placeholder="Ask anything..."
+            className="w-full bg-transparent text-zinc-100 placeholder-zinc-500 text-sm focus:outline-none resize-none min-h-[36px] max-h-36 leading-relaxed px-1"
+          />
+
+          <div className="flex items-center justify-between pt-1 border-t border-zinc-800/40">
+            <div className="flex items-center gap-1 text-zinc-400">
+              <button
+                type="button"
+                className="p-1.5 hover:text-zinc-200 hover:bg-zinc-800/80 rounded-lg transition cursor-pointer"
+                title="Attach file"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
+                </svg>
+              </button>
+
+              <button
+                type="button"
+                className="p-1.5 hover:text-zinc-200 hover:bg-zinc-800/80 rounded-lg transition cursor-pointer"
+                title="Voice input"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
+                  <path d="M19 10v2a7 7 0 01-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="23" />
+                  <line x1="8" y1="23" x2="16" y2="23" />
+                </svg>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleSendMessage()}
+              disabled={!inputPrompt.trim() || loading}
+              className={`p-2.5 rounded-xl flex items-center justify-center transition-all ${
+                inputPrompt.trim() && !loading
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-purple-950/30 cursor-pointer'
+                  : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+              }`}
+              title="Send message"
+            >
+              <svg className="w-4 h-4 transform rotate-45 -translate-y-0.5 -translate-x-0.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+              </svg>
+            </button>
+          </div>
         </div>
-      )}
-    </div>
+      </div>}
     </div>
   );
 };
