@@ -504,14 +504,13 @@ const ChatArea = ({
                     placeholder="Message Covo AI..."
                     className="flex-1 bg-transparent text-sm sm:text-base text-white placeholder:text-zinc-500 focus:outline-none resize-none min-h-[42px] max-h-36 py-2 leading-relaxed"
                   />
-                  <button
+                                    <button
                     type="button"
                     onClick={() => handleSendMessage()}
                     disabled={!inputPrompt.trim() || loading}
                     title="Send message"
-                    className={`mb-0.5 shrink-0 p-3 rounded-xl transition-all ${inputPrompt.trim() && !loading ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-purple-950/60 cursor-pointer' : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'}`}
-                  >
-                    <svg className="w-4 h-4 rotate-45 -translate-x-px -translate-y-px" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
+                    className={`mb-0.5 shrink-0 p-2.5 rounded-xl transition-all flex items-center justify-center ${inputPrompt.trim() && !loading ? 'bg-white text-black hover:bg-zinc-200 cursor-pointer shadow-md' : 'bg-zinc-800/80 text-zinc-500 cursor-not-allowed'}`} >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path fillRule="evenodd" clipRule="evenodd" d="M12 4a1 1 0 0 1 .707.293l6 6a1 1 0 1 1-1.414 1.414L13 7.414V19a1 1 0 1 1-2 0V7.414l-4.293 4.293a1 1 0 1 1-1.414-1.414l6-6A1 1 0 0 1 12 4z"/></svg>
                   </button>
                 </div>
               </div>
@@ -604,13 +603,11 @@ const ChatArea = ({
 
             {/* Streaming Caret & Generator Indicator */}
             {loading && (
-              <div className="flex justify-start w-full">
-                <div className="bg-[#191a22] border border-zinc-800/80 px-5 py-4 rounded-2xl rounded-tl-xs flex items-center gap-3 text-sm text-zinc-300 shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse"></span>
-                    <span className="text-xs text-zinc-400 font-medium">Covo AI is generating response...</span>
-                    <span className="font-mono text-purple-400 animate-caret font-bold text-sm">▌</span>
-                  </div>
+               <div className="flex justify-start w-full">
+                <div className="bg-[#191a22] border border-zinc-800/80 px-5 py-4 rounded-2xl rounded-tl-xs flex items-center gap-2 shadow-sm">
+                  <div className="w-2 h-2 rounded-full bg-zinc-400 animate-pulse" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 rounded-full bg-zinc-400 animate-pulse" style={{ animationDelay: '200ms' }}></div>
+                  <div className="w-2 h-2 rounded-full bg-zinc-400 animate-pulse" style={{ animationDelay: '400ms' }}></div>
                 </div>
               </div>
             )}
