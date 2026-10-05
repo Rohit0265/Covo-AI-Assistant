@@ -85,9 +85,6 @@ const SideBar = ({
             </svg>
           </div>
           <span className="font-semibold text-base tracking-tight text-white">CortexAI</span>
-          <span className="bg-[#20183b] text-[#a78bfa] border border-[#3b2a68] text-[10px] font-medium px-2 py-0.5 rounded-full">
-            free
-          </span>
         </div>
 
         <button
