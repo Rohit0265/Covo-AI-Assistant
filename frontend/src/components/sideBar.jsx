@@ -18,6 +18,7 @@ const SideBar = ({
 
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleEditClick = (e, item) => {
     e.stopPropagation();
@@ -74,32 +75,40 @@ const SideBar = ({
 
   return (
     <>
-    <aside className="h-screen w-[270px] shrink-0 border-r border-zinc-800/60 flex flex-col bg-black text-[#ececec] select-none">
+    <aside className={`h-screen shrink-0 border-r border-zinc-800/60 flex flex-col bg-black text-[#ececec] select-none transition-[width] duration-300 ${isCollapsed ? 'w-16' : 'w-[270px]'}`}>
       {/* Header */}
-      <div className="flex h-14 items-center justify-between px-4">
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-700/60 bg-zinc-800/80 text-white font-semibold">
+      <div className={`flex h-14 items-center ${isCollapsed ? 'justify-center px-2' : 'justify-between px-4'}`}>
+        <div className="flex items-center gap-2.5 min-w-0">
+          {/* <div className="flex items-center justify-center w-7 h-7 rounded-lg border border-zinc-700/60 bg-zinc-800/80 text-white font-semibold">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="3" width="18" height="18" rx="2" />
               <path d="M9 3v18" />
             </svg>
-          </div>
-          <span className="font-semibold text-base tracking-tight text-white">Covo AI</span>
+          </div> */}
+          {!isCollapsed && <span className="font-semibold text-base tracking-tight text-white whitespace-nowrap">Covo AI</span>}
         </div>
 
-        <button
+        {!isCollapsed && <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setIsCollapsed(true)}
+            className="text-zinc-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800/60 transition cursor-pointer"
+            title="Collapse sidebar"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 3v18" /></svg>
+          </button>
+        </div>}
+        {isCollapsed && <button
           type="button"
-          onClick={onNewChat}
-          className="text-zinc-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800/60 transition cursor-pointer"
-          title="New Chat"
+          onClick={() => setIsCollapsed(false)}
+          className="absolute top-3.5 left-11 text-zinc-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800/60 transition cursor-pointer"
+          title="Expand sidebar"
         >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-          </svg>
-        </button>
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 3v18" /></svg>
+        </button>}
       </div>
 
+      {!isCollapsed && <>
       {/* New Chat Button */}
       <div className="px-4 py-3">
         <button
@@ -245,6 +254,7 @@ const SideBar = ({
           </div>
         </div>
       </div>
+      </>}
     </aside>
     <BillingDrawer isOpen={showBilling} onClose={() => setShowBilling(false)} />
     </>
