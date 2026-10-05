@@ -549,8 +549,10 @@ const ChatArea = ({
                       {msg.content}
                     </div>
                   ) : (
-                    /* Assistant Message Card */
-                    <div className="bg-[#191a22] text-zinc-200 border border-zinc-800/80 px-5 py-4.5 rounded-2xl rounded-tl-xs text-sm w-full max-w-[92%] sm:max-w-[85%] leading-relaxed shadow-sm break-words">
+                    /* Assistant Message  Container */
+                    <div className="flex flex-col gap-1 w-full max-w-[92%] sm:max-w-[85%]">
+                      {/* Assistant Message Card */}
+                    <div className="bg-[#191a22] text-zinc-200 border border-zinc-800/80 px-5 py-4.5 rounded-2xl rounded-tl-xs text-sm w-full overflow-x-auto relativeleading-relaxed shadow-sm break-words">
                       {/* Search Image Grid */}
                       {msg.images && msg.images.length > 0 && (
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-4">
@@ -588,7 +590,7 @@ const ChatArea = ({
                       >
                         {msg.content}
                       </ReactMarkdown>
-
+                      </div>
                       {/* Response Action Tools */}
                       <ResponseActions
                         content={msg.content}

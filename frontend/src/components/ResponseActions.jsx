@@ -19,7 +19,7 @@ const ResponseActions = ({ content, onRegenerate }) => {
   };
 
   return (
-    <div className="flex items-center gap-1.5 pt-3 mt-2 border-t border-zinc-800/40 text-zinc-400 select-none">
+    <div className="flex items-center gap-1.5 text-zinc-500 select-none pl-1">
       {/* Copy Action */}
       <button
         type="button"
