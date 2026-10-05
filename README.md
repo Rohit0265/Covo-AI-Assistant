@@ -39,8 +39,6 @@ It uses a **microservices backend** (4 independent Node.js services behind an Ex
 
 ## 🎥 Preview
 
-*(Replace this placeholder by dragging and dropping your screen recording `.mp4` or `.gif` file right here in the GitHub editor!)*
-
 <div align="center">
   <video src="[https://github.com/user-attachments/assets/your-video-id-here](https://github.com/user-attachments/assets/a56acc77-51d0-47a6-a409-2d2d6d350b3d)" width="800" controls="controls">
   </video>
