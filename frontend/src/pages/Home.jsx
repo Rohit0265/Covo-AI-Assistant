@@ -85,6 +85,8 @@ const Home = () => {
   useEffect(() => {
     if (conversations && conversations.length > 0) {
       localStorage.setItem('cortex_conversations', JSON.stringify(conversations));
+    } else {
+      localStorage.removeItem('cortex_conversations');
     }
   }, [conversations]);
 

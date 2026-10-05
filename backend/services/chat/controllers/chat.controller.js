@@ -1,5 +1,6 @@
 import Message from "../model/message.model.js";
 import Conversation from "../model/conversation.models.js";
+import mongoose from "mongoose";
 
 export const createConversation = async (req, res) => {
   try {
@@ -67,7 +68,14 @@ export const getMessages = async (req, res) => {
 export const deleteConversation = async (req, res) => {
   try {
     const { id } = req.params;
-    await Conversation.findByIdAndDelete(id);
+
+    // New conversations are first created client-side with IDs such as
+    // `conv-<timestamp>`. Those are valid message IDs but not Mongo ObjectIds.
+    // Delete a persisted conversation when one exists, and always remove its
+    // related messages so both temporary and persisted chats can be deleted.
+    if (mongoose.isValidObjectId(id)) {
+      await Conversation.findOneAndDelete({ _id: id, userId: req.headers["x-user-id"] });
+    }
     await Message.deleteMany({ conversationId: id });
     return res.status(200).json({ message: "Conversation deleted" });
   } catch (error) {

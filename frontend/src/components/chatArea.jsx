@@ -483,8 +483,8 @@ const ChatArea = ({
 
             <div className="w-full max-w-2xl text-center">
               <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.9)] mb-8">
-                Hello {username}
-              </h1>
+                Hello {username} 👋
+                </h1>
 
               <div className="rounded-2xl border border-white/10 bg-[#101116]/85 p-3 shadow-2xl shadow-black/60 backdrop-blur-xl focus-within:border-purple-400/50 transition-colors">
                 <div className="flex items-end gap-2">
