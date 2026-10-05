@@ -639,41 +639,9 @@ const ChatArea = ({
 
       {/* Bottom Input Area */}
       {messages.length > 0 && <div className="shrink-0 px-4 pb-5 pt-2 bg-gradient-to-t from-black via-black to-transparent">
-        <div className="max-w-3xl sm:max-w-4xl mx-auto bg-[#181920] border border-zinc-800/80 rounded-2xl p-3 flex flex-col gap-2.5 shadow-2xl focus-within:border-zinc-700 transition-colors">
-          {/* Mode Pill Selectors Bar */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 no-scrollbar select-none">
-            {modeOptions.map((item) => {
-              const isSelected = selectedMode === item.key;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => setSelectedMode(item.key)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer ${
-                    isSelected
-                      ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-violet-600 text-white shadow-md shadow-purple-950/40 border border-purple-400/30'
-                      : 'bg-[#22232c]/80 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-700/40'
-                  }`}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <textarea
-            ref={textareaRef}
-            value={inputPrompt}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            rows={1}
-            placeholder="Ask anything..."
-            className="w-full bg-transparent text-zinc-100 placeholder-zinc-500 text-sm focus:outline-none resize-none min-h-[36px] max-h-36 leading-relaxed px-1"
-          />
-
-          <div className="flex items-center justify-between pt-1 border-t border-zinc-800/40">
-            <div className="flex items-center gap-1 text-zinc-400">
+        <div className="max-w-3xl sm:max-w-4xl mx-auto">
+          <div className="bg-[#181920] border border-zinc-800/80 rounded-2xl p-2.5 flex items-center gap-1.5 shadow-2xl focus-within:border-zinc-700 transition-colors">
+            <div className="flex shrink-0 items-center gap-0.5 text-zinc-400">
               <button
                 type="button"
                 className="p-1.5 hover:text-zinc-200 hover:bg-zinc-800/80 rounded-lg transition cursor-pointer"
@@ -698,6 +666,16 @@ const ChatArea = ({
               </button>
             </div>
 
+            <textarea
+              ref={textareaRef}
+              value={inputPrompt}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              rows={1}
+              placeholder="Ask anything..."
+              className="min-w-0 flex-1 bg-transparent text-zinc-100 placeholder-zinc-500 text-sm focus:outline-none resize-none min-h-[36px] max-h-36 leading-relaxed px-1 py-2"
+            />
+
             <button
               type="button"
               onClick={() => handleSendMessage()}
@@ -713,6 +691,27 @@ const ChatArea = ({
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
               </svg>
             </button>
+          </div>
+
+          {/* Model selectors intentionally sit outside the input box. */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pt-3 pb-1 no-scrollbar select-none">
+            {modeOptions.map((item) => {
+              const isSelected = selectedMode === item.key;
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => setSelectedMode(item.key)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer ${
+                    isSelected
+                      ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-violet-600 text-white shadow-md shadow-purple-950/40 border border-purple-400/30'
+                      : 'bg-[#22232c]/80 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-700/40'
+                  }`}
+                >
+                  {item.icon}<span>{item.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>}
