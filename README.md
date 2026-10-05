@@ -8,6 +8,7 @@
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
+- [Preview](#-preview)
 - [Architecture](#-architecture)
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
@@ -33,6 +34,17 @@
 **Covo AI** is a modern AI chat assistant web application that lets users converse with multiple AI models (Google Gemini, Groq, OpenRouter, etc.), perform real-time web searches, generate images, create documents, and manage everything through a clean, minimal dark-mode UI.
 
 It uses a **microservices backend** (4 independent Node.js services behind an Express API Gateway) and a **React + Vite frontend** styled with Tailwind CSS.
+
+---
+
+## 🎥 Preview
+
+*(Replace this placeholder by dragging and dropping your screen recording `.mp4` or `.gif` file right here in the GitHub editor!)*
+
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/your-video-id-here" width="800" controls="controls">
+  </video>
+</div>
 
 ---
 
