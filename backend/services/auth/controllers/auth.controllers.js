@@ -74,42 +74,39 @@ export const logout = async (req, res) => {
 };
 
 
-export const updateUserPayment = async() =>{
+export const updateUserPayment = async(req, res) =>{
     try {
-        const {plan,credits,totalcredits,planExpireAt,userId} = req.body
-        const user = await User.find(userId)
+        const {credits, userId, sessionId} = req.body
+        const user = await User.findById(userId)
         if(!user){
-            return res.status(404).JSON({message:"User not found"})
+            return res.status(404).json({message:"User not found"})
         }
-        user.plan=plan
-        user.credits += credits
-        user.totalcredits += credits
-        user.planExpireAt = new Date(Date.now() + 30*24*60*60*1000)
+        
+        user.credits = (user.credits || 0) + credits;
+        user.totalcredits = (user.totalcredits || 0) + credits;
         await user.save();
 
-
-
-
-        const sessionId = req.cookies?.session
-
-        await redis.set(
-            `session:${sessionId}`,
-            JSON.stringify({
-                userId: user._id,
-                name: user.username || user.name,
-                email: user.email,
-                avatar: user.avatar,
-                plan:user.plan,
-                credits:user.credits,
-                totalcredits:user.totalcredits,
-                planExpireAt:user.planExpireAt
-            }),
-            "EX",
-            7 * 24 * 60 * 60
-        );
-        return res.status(200).JSON({success:true})
+        if (sessionId) {
+            await redis.set(
+                `session:${sessionId}`,
+                JSON.stringify({
+                    userId: user._id,
+                    name: user.username || user.name,
+                    email: user.email,
+                    avatar: user.avatar,
+                    plan: user.plan,
+                    credits: user.credits,
+                    totalcredits: user.totalcredits,
+                    planExpireAt: user.planExpireAt
+                }),
+                "EX",
+                7 * 24 * 60 * 60
+            );
+        }
+        
+        return res.status(200).json({success:true})
     } catch (error) {
-        return res.status(400).JSON({message:`error in payment ${error}`})
+        return res.status(400).json({message:`error in payment ${error}`})
     }
 }
 

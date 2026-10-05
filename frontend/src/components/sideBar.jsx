@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import api from '../utils/axios';
 import logout from '../features/logout';
 import { setUserData } from '../redux/userSlice';
+import BillingDrawer from './BillingDrawer';
 
 const SideBar = ({
   activeConversationId,
@@ -68,7 +69,11 @@ const SideBar = ({
     dispatch(setUserData(null));
   };
 
+
+  const [showBilling,setShowBilling] = useState(false)
+
   return (
+    <>
     <aside className="h-screen w-[270px] shrink-0 border-r border-zinc-800/60 flex flex-col bg-[#111218] text-[#ececec] select-none">
       {/* Header */}
       <div className="flex h-14 items-center justify-between px-4">
@@ -220,6 +225,7 @@ const SideBar = ({
               type="button"
               className="p-1.5 text-amber-400 hover:bg-zinc-800 rounded-lg transition cursor-pointer"
               title="Coins"
+              onClick={() => setShowBilling(true)}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="9" />
@@ -243,6 +249,8 @@ const SideBar = ({
         </div>
       </div>
     </aside>
+    <BillingDrawer isOpen={showBilling} onClose={() => setShowBilling(false)} />
+    </>
   );
 };
 
