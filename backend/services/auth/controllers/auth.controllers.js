@@ -92,9 +92,16 @@ export const updateUserPayment = async(req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
+        // Older accounts may not contain fields added after their creation.
+        // Normalize them before incrementing so payment verification can complete.
+        const currentCredits = Number.isFinite(user.credits) ? user.credits : 100;
+        const currentTotalCredits = Number.isFinite(user.totalCredits)
+            ? user.totalCredits
+            : currentCredits;
+
         user.plan = plan || user.plan;
-        user.credits += creditAmount;
-        user.totalCredits += creditAmount;
+        user.credits = currentCredits + creditAmount;
+        user.totalCredits = currentTotalCredits + creditAmount;
         user.planExpireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
         await user.save();
 

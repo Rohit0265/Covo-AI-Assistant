@@ -77,7 +77,8 @@ const BillingDrawer = ({ isOpen, onClose }) => {
             if (onClose) onClose();
           } catch (error) {
             console.error('Payment verification failed:', error);
-            alert('Payment verification failed. Please contact support if money was deducted.');
+            const message = error.response?.data?.message || 'Payment verification failed.';
+            alert(`${message} Please contact support if money was deducted.`);
           }
         },
         prefill: {
@@ -146,7 +147,9 @@ const BillingDrawer = ({ isOpen, onClose }) => {
             <div className="relative z-10">
               <p className="text-sm font-medium text-purple-200/70 mb-1">Available Balance</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-black text-white tracking-tight">{userData?.credits ?? 0}</span>
+                <span className="text-4xl font-black text-white tracking-tight">
+                  {Number.isFinite(userData?.credits) ? userData.credits : 100}
+                </span>
                 <span className="text-purple-300 font-medium">tokens</span>
               </div>
             </div>

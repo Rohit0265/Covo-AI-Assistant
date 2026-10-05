@@ -2,6 +2,7 @@ import { Plans } from "../config/Plans.js"
 import razorpay from "../config/razorpay.js"
 import Payment from "../models/payment.models.js"
 import axios from "axios"
+import { createHmac } from "node:crypto"
 
 export const createOrder = async(req,res)=>{
     try {
@@ -49,7 +50,7 @@ export const verifyPayment = async (req, res) => {
             razorpay_signature
 
         } = req.body
-        const generateSignature = crypto.createHmac("sha256",process.env.RAZORPAY_SECRET_ID)
+        const generateSignature = createHmac("sha256", process.env.RAZORPAY_SECRET_ID)
         .update(`${razorpay_order_id}|${razorpay_payment_id}`)
         .digest("hex")
 
@@ -79,6 +80,11 @@ export const verifyPayment = async (req, res) => {
 
         return res.status(200).json({ message: "Payment Verified", user: accountUpdate.user });
     } catch (error) {
-        return res.status(400).json({message:`payment error ${error}`})
+        const status = error.response?.status >= 400 && error.response?.status < 500
+            ? error.response.status
+            : 500;
+        const message = error.response?.data?.message || error.message || "Payment verification failed";
+        console.error("Payment verification error:", error.response?.data || error);
+        return res.status(status).json({ message });
     }
 }
