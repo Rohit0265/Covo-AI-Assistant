@@ -1,6 +1,108 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { createBillingOrder, verifyBillingPayment } from '../features/createOrder';
+import { setUserData } from '../redux/userSlice';
+
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 const BillingDrawer = ({ isOpen, onClose }) => {
+  const userData = useSelector((state) => state.user?.userData);
+  const dispatch = useDispatch();
+  const [loadingPlan, setLoadingPlan] = useState(null);
+
+  const plans = [
+    {
+      id: 'starter',
+      name: 'Starter Credits',
+      tokens: '500',
+      price: '₹199',
+      popular: false,
+    },
+    {
+      id: 'pro',
+      name: 'Pro Credits',
+      tokens: '1,000',
+      price: '₹499',
+      popular: true,
+      save: 'Best Value',
+    },
+  ];
+
+  const handlePayment = async (planId) => {
+    const isScriptLoaded = await loadRazorpayScript();
+    if (!isScriptLoaded) {
+      alert('Razorpay SDK failed to load. Please check your internet connection.');
+      return;
+    }
+
+    try {
+      setLoadingPlan(planId);
+      const data = await createBillingOrder(planId);
+
+      if (!data || !data.order) {
+        alert('Failed to create order. Please try again.');
+        return;
+      }
+
+      const options = {
+        key: data.keyId,
+        amount: data.order.amount,
+        currency: data.order.currency || 'INR',
+        name: 'CortexAI',
+        description: `Buy ${planId.toUpperCase()} Credits`,
+        order_id: data.order.id,
+        handler: async function (response) {
+          try {
+            const verification = await verifyBillingPayment({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            if (verification?.user) {
+              dispatch(setUserData(verification.user));
+            }
+            alert('🎉 Payment successful! Your credits have been updated.');
+            if (onClose) onClose();
+          } catch (error) {
+            console.error('Payment verification failed:', error);
+            alert('Payment verification failed. Please contact support if money was deducted.');
+          }
+        },
+        prefill: {
+          name: userData?.name || userData?.displayName || userData?.username || '',
+          email: userData?.email || '',
+        },
+        theme: {
+          color: '#6366f1',
+        },
+      };
+
+      const razorpayInstance = new window.Razorpay(options);
+      razorpayInstance.on('payment.failed', function (response) {
+        console.error('Payment failed:', response.error);
+        alert(`Payment failed: ${response.error.description || 'Transaction cancelled'}`);
+      });
+      razorpayInstance.open();
+    } catch (error) {
+      console.error('Order creation failed:', error);
+      alert('Failed to initiate order. Ensure backend billing service is running.');
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -27,6 +129,7 @@ const BillingDrawer = ({ isOpen, onClose }) => {
           <button 
             onClick={onClose}
             className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800/80 rounded-xl transition-all cursor-pointer"
+            title="Close"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
@@ -43,28 +146,26 @@ const BillingDrawer = ({ isOpen, onClose }) => {
             <div className="relative z-10">
               <p className="text-sm font-medium text-purple-200/70 mb-1">Available Balance</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-black text-white tracking-tight">4,250</span>
+                <span className="text-4xl font-black text-white tracking-tight">{userData?.credits ?? 0}</span>
                 <span className="text-purple-300 font-medium">tokens</span>
-              </div>
-              <div className="mt-6 flex items-center justify-between">
-                <span className="text-xs text-zinc-400">Free plan user</span>
-                <button className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold rounded-lg shadow-md shadow-purple-900/50 transition-colors">
-                  Upgrade Plan
-                </button>
               </div>
             </div>
           </div>
 
           {/* Token Packages */}
           <div>
-            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">Buy More Tokens</h3>
+            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">Buy More Credits</h3>
             <div className="space-y-3">
-              {[
-                { tokens: '1,000', price: '$4.99', popular: false },
-                { tokens: '5,000', price: '$19.99', popular: true, save: '20%' },
-                { tokens: '20,000', price: '$49.99', popular: false, save: '40%' },
-              ].map((pkg, idx) => (
-                <div key={idx} className={`relative flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${pkg.popular ? 'bg-indigo-900/20 border-indigo-500/30 hover:border-indigo-500/50 hover:bg-indigo-900/30' : 'bg-zinc-800/30 border-zinc-700/50 hover:border-zinc-600 hover:bg-zinc-800/50'}`}>
+              {plans.map((pkg) => (
+                <div
+                  key={pkg.id}
+                  onClick={() => !loadingPlan && handlePayment(pkg.id)}
+                  className={`relative flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${
+                    pkg.popular
+                      ? 'bg-indigo-900/20 border-indigo-500/30 hover:border-indigo-500/50 hover:bg-indigo-900/30'
+                      : 'bg-zinc-800/30 border-zinc-700/50 hover:border-zinc-600 hover:bg-zinc-800/50'
+                  } ${loadingPlan === pkg.id ? 'opacity-60 pointer-events-none' : ''}`}
+                >
                   {pkg.popular && (
                     <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-lg">
                       Most Popular
@@ -72,57 +173,34 @@ const BillingDrawer = ({ isOpen, onClose }) => {
                   )}
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg ${pkg.popular ? 'bg-indigo-500/20 text-indigo-400' : 'bg-zinc-700/50 text-zinc-400'}`}>
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 6v12M15 9.5a2.5 2.5 0 00-5 0c0 2 3 2.5 3 4.5a2.5 2.5 0 01-5 0" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div className="text-white font-bold">{pkg.tokens} <span className="text-zinc-400 font-normal text-sm">Tokens</span></div>
-                      {pkg.save && <div className="text-xs text-emerald-400 font-medium">Save {pkg.save}</div>}
-                    </div>
-                  </div>
-                  <div className="font-semibold text-white">{pkg.price}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Recent Transactions */}
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">Recent Usage</h3>
-            <div className="space-y-4">
-              {[
-                { task: 'GPT-4 Code Generation', date: 'Today, 2:45 PM', cost: '-15', type: 'usage' },
-                { task: 'Image Synthesis', date: 'Today, 1:12 PM', cost: '-45', type: 'usage' },
-                { task: 'Token Purchase', date: 'Yesterday', cost: '+5,000', type: 'purchase' },
-              ].map((tx, idx) => (
-                <div key={idx} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.type === 'purchase' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-800 text-zinc-400'}`}>
-                      {tx.type === 'purchase' ? (
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+                      {loadingPlan === pkg.id ? (
+                        <svg className="w-4 h-4 animate-spin text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                          <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" className="opacity-75" />
+                        </svg>
                       ) : (
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="9" />
+                          <path d="M12 6v12M15 9.5a2.5 2.5 0 00-5 0c0 2 3 2.5 3 4.5a2.5 2.5 0 01-5 0" />
+                        </svg>
                       )}
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-zinc-200">{tx.task}</div>
-                      <div className="text-xs text-zinc-500">{tx.date}</div>
+                      <div className="text-white font-bold">{pkg.name} <span className="text-zinc-400 font-normal text-sm">({pkg.tokens} Tokens)</span></div>
+                      {pkg.save && <div className="text-xs text-emerald-400 font-medium">{pkg.save}</div>}
                     </div>
                   </div>
-                  <div className={`text-sm font-bold ${tx.type === 'purchase' ? 'text-emerald-400' : 'text-zinc-300'}`}>
-                    {tx.cost}
-                  </div>
+                  <div className="font-semibold text-white text-lg">{pkg.price}</div>
                 </div>
               ))}
             </div>
           </div>
+
         </div>
 
         {/* Footer */}
         <div className="p-4 border-t border-zinc-800/60 bg-zinc-900/30 text-center">
-          <p className="text-xs text-zinc-500">Payments are securely processed by Stripe.</p>
+          <p className="text-xs text-zinc-500">Payments are securely processed by Razorpay.</p>
         </div>
       </div>
     </>

@@ -31,7 +31,11 @@ export const login = async (req, res) => {
                 userId: user._id,
                 name: user.username || user.name || user.email,
                 email: user.email,
-                avatar: user.avatar
+                avatar: user.avatar,
+                plan: user.plan,
+                credits: user.credits,
+                totalCredits: user.totalCredits,
+                planExpireAt: user.planExpireAt
             }),
             "EX",
             7 * 24 * 60 * 60
@@ -74,42 +78,50 @@ export const logout = async (req, res) => {
 };
 
 
-export const updateUserPayment = async() =>{
+export const updateUserPayment = async(req, res) => {
     try {
-        const {plan,credits,totalcredits,planExpireAt,userId} = req.body
-        const user = await User.find(userId)
-        if(!user){
-            return res.status(404).JSON({message:"User not found"})
+        const { plan, credits, userId } = req.body;
+        const creditAmount = Number(credits);
+
+        if (!userId || !Number.isFinite(creditAmount) || creditAmount <= 0) {
+            return res.status(400).json({ message: "A valid user and credit amount are required" });
         }
-        user.plan=plan
-        user.credits += credits
-        user.totalcredits += credits
-        user.planExpireAt = new Date(Date.now() + 30*24*60*60*1000)
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        user.plan = plan || user.plan;
+        user.credits += creditAmount;
+        user.totalCredits += creditAmount;
+        user.planExpireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
         await user.save();
 
-
-
-
-        const sessionId = req.cookies?.session
-
-        await redis.set(
-            `session:${sessionId}`,
-            JSON.stringify({
+        // The billing service receives this from the authenticated gateway request.
+        // Refreshing it keeps /api/me accurate immediately after a purchase.
+        const sessionId = req.headers["x-session-id"] || req.cookies?.session;
+        if (sessionId) {
+            await redis.set(
+                `session:${sessionId}`,
+                JSON.stringify({
                 userId: user._id,
                 name: user.username || user.name,
                 email: user.email,
                 avatar: user.avatar,
-                plan:user.plan,
-                credits:user.credits,
-                totalcredits:user.totalcredits,
-                planExpireAt:user.planExpireAt
-            }),
-            "EX",
-            7 * 24 * 60 * 60
-        );
-        return res.status(200).JSON({success:true})
+                plan: user.plan,
+                credits: user.credits,
+                totalCredits: user.totalCredits,
+                planExpireAt: user.planExpireAt
+                }),
+                "EX",
+                7 * 24 * 60 * 60
+            );
+        }
+
+        return res.status(200).json({ success: true, user });
     } catch (error) {
-        return res.status(400).JSON({message:`error in payment ${error}`})
+        return res.status(500).json({ message: `error in payment ${error.message}` });
     }
 }
 
