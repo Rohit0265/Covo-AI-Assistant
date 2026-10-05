@@ -40,7 +40,7 @@ It uses a **microservices backend** (4 independent Node.js services behind an Ex
 ## 🎥 Preview
 
 <div align="center">
-  <video src="(https://github.com/user-attachments/assets/a56acc77-51d0-47a6-a409-2d2d6d350b3d)" width="800" controls="controls">
+  <video src="https://github.com/user-attachments/assets/a56acc77-51d0-47a6-a409-2d2d6d350b3d" width="800" controls="controls">
   </video>
 </div>
 
