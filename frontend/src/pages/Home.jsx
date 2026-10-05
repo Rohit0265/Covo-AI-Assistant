@@ -189,7 +189,7 @@ const Home = () => {
               </h1>
               <p className="text-sm text-zinc-400 mt-1">
                 {isSignUp
-                  ? 'Sign up to get started with CortexAI'
+                  ? 'Sign up to get started with Covo AI'
                   : 'Please sign in to access your conversations'}
               </p>
             </div>

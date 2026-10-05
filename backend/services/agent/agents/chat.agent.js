@@ -12,10 +12,10 @@ export const chat = async (state) => {
 
   const currentTimeStr = new Date().toUTCString();
 
-  let systemPrompt = `You are CortexAI, an intelligent, helpful, and friendly AI assistant. Current System Time (UTC): ${currentTimeStr}. Assist the user with informative, precise, and polite answers.`;
+  let systemPrompt = `You are Covo AI, an intelligent, helpful, and friendly AI assistant. Current System Time (UTC): ${currentTimeStr}. Assist the user with informative, precise, and polite answers.`;
 
   if (state.searchContext) {
-    systemPrompt = `You are CortexAI, an intelligent web search assistant.
+    systemPrompt = `You are Covo AI, an intelligent web search assistant.
 Current System Time Reference: ${currentTimeStr}
 
 LIVE WEB SEARCH CONTEXT:

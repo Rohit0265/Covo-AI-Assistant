@@ -36,7 +36,7 @@ export const coding= async(state)=>{
   if(intent === "CODE_GENERATION"){
     const llm = getModel("coding");
   const prompt = `
-You are CortexAI Coding Agent.
+You are Covo AI Coding Agent.
 
 Generate the requested project.
 

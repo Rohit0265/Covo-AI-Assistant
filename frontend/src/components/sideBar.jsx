@@ -84,7 +84,7 @@ const SideBar = ({
               <path d="M9 3v18" />
             </svg>
           </div>
-          <span className="font-semibold text-base tracking-tight text-white">CortexAI</span>
+          <span className="font-semibold text-base tracking-tight text-white">Covo AI</span>
         </div>
 
         <button
@@ -213,7 +213,7 @@ const SideBar = ({
             )}
             <div className="min-w-0 flex-1">
               <span className="block truncate text-sm font-semibold text-white">{displayName}</span>
-              <span className="block truncate text-xs text-zinc-400">Free Plan</span>
+              <span className="block truncate text-xs text-zinc-400">{userData?.credits ?? 0} Credits</span>
             </div>
           </div>
 

@@ -290,7 +290,7 @@ const ChatArea = ({
         responseContent =
           data?.answer ||
           data?.response ||
-          (typeof data === 'string' ? data : "I'm CortexAI. How can I assist you further?");
+          (typeof data === 'string' ? data : "I'm Covo AI. How can I assist you further?");
         returnedImages = data?.images || [];
         returnedArtifacts = data?.artifacts || [];
         
@@ -501,7 +501,7 @@ const ChatArea = ({
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     rows={1}
-                    placeholder="Message CortexAI..."
+                    placeholder="Message Covo AI..."
                     className="flex-1 bg-transparent text-sm sm:text-base text-white placeholder:text-zinc-500 focus:outline-none resize-none min-h-[42px] max-h-36 py-2 leading-relaxed"
                   />
                   <button
@@ -606,7 +606,7 @@ const ChatArea = ({
                 <div className="bg-[#191a22] border border-zinc-800/80 px-5 py-4 rounded-2xl rounded-tl-xs flex items-center gap-3 text-sm text-zinc-300 shadow-sm">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse"></span>
-                    <span className="text-xs text-zinc-400 font-medium">CortexAI is generating response...</span>
+                    <span className="text-xs text-zinc-400 font-medium">Covo AI is generating response...</span>
                     <span className="font-mono text-purple-400 animate-caret font-bold text-sm">▌</span>
                   </div>
                 </div>

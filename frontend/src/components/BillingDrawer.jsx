@@ -60,7 +60,7 @@ const BillingDrawer = ({ isOpen, onClose }) => {
         key: data.keyId,
         amount: data.order.amount,
         currency: data.order.currency || 'INR',
-        name: 'CortexAI',
+        name: 'Covo AI',
         description: `Buy ${planId.toUpperCase()} Credits`,
         order_id: data.order.id,
         handler: async function (response) {
